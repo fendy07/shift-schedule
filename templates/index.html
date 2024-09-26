@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Shift System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+</head>
+
+<body>
+    <div id="notification" class="mt-0"></div>
+    <div class="container mt-5">    
+        <h1 class="mb-4">Penjadwalan Shift</h1>
+
+        <div class="mb-3">
+            <label>Masukan Nama Karyawan</label>
+            <div id="names-list">
+                <!-- Default Names -->
+                <div class="input-group mb-2">
+                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Rika">
+                    <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
+                </div>
+                <div class="input-group mb-2">
+                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Riza">
+                    <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
+                </div>
+                <div class="input-group mb-2">
+                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Dimas">
+                    <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
+                </div>
+                <div class="input-group mb-2">
+                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Dinda">
+                    <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
+                </div>
+                <div class="input-group mb-2">
+                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Hikmah">
+                    <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
+                </div>
+                <div class="input-group mb-2">
+                    <input type="text" class="worker-name form-control" placeholder="add employee name" value="Antika">
+                    <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
+                </div>
+                <!-- Akhir nama default -->
+            </div>
+            <button class="btn btn-info mb-2" onclick="addNameField()">Tambah Nama Karyawan</button>
+        </div>
+        <hr />
+        <button id="btn-optimize" class="btn btn-warning" onclick="optimize()">Buat Kalendar</button>
+        <button class="btn btn-success" onclick="saveSchedule()">Simpan Kalendar</button>
+        <div id="optimizing" class="mt-3 hidden">
+            <div class="spinner-border text-warning" role="status">
+                <span class="sr-only">Optimasi...</span>
+            </div>
+            Optimasi...
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <h4 class="mb-2">Kalendar yang sudah dibuat</h4>
+            </div>
+            <div class="col-md-6 mb-1">
+                <label for="file-list">Pilih File</label>
+                <select id="file-list" class="form-control">
+                    <!-- Opsi Kotak Kombo akan diisi dari JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-primary" onclick="loadSchedule()">Memuat Program Kalendar</button>
+                <button class="btn btn-secondary" onclick="listFiles()" title="Refresh Files">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <hr />
+        <div class="mb-3">
+            <span class="badge badge-day shift-1">Shift 1 (10:00 - 18:00)</span>
+            <span class="badge badge-day shift-2">Shift 2 (14:00 - 22:00)</span>
+            <span class="badge badge-day shift-3">Shift 3 (12:00 - 20:00)</span>
+            <span class="badge badge-day shift-4">Shift 4 (10:00 - 20:00)</span>
+            <span class="badge badge-day shift-5">Shift 5 (10:00 - 19:00)</span>
+            <span class="badge badge-day shift-6">Shift 6 (10:00 - 22:00)</span>
+            <span class="badge badge-off shift-7">Libur (Off Day)</span>
+        </div>
+        <div id='calendar'></div>
+        <hr/>
+        <div id="metrics"></div>
+        <div id="monthlyMetrics" class="mt-5"></div>
+    </div>
+
+    <script>
+        var currentSchedule = [];
+
+        function listFiles() {
+            $.get('/list_schedules', function(files) {
+                var fileList = $('#file-list');
+                fileList.empty();
+                files.forEach(function(file) {
+                    fileList.append('<option value="' + file + '">' + file + '</option>');
+                });
+            });
+        }
+
+        var calendar;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth'
+            });
+            calendar.render();
+            listFiles();
+        });
+        
+        function optimizeCalendar() {
+            $('#optimizing').show();
+            $('#btn-optimize').attr('disabled', true);
+            $.post('/optimize', {}, function (data) {
+                updateCalendar(data);
+                $('#optimizing').hide();
+                $('#btn-optimize').attr('disabled', false);
+            });
+        }
+
+        function showNotification(type, message) {
+            var notification = $('#notification');
+            notification.html(`<div class="alert alert-${type}" role="alert">${message}</div>`);
+            setTimeout(function() {
+                notification.empty();
+            }, 3000);  // Notifikasi akan hilang setelah 3 detik
+        }
+
+        function loadSchedule() {
+            console.log('loadSchedule');
+            var selectedFile = $('#file-list').val();
+            if (!selectedFile) {
+                showNotification('warning', 'Silahkan Pilih File Schedule!');
+                return;
+            }
+
+            $.ajax({
+                url: '/load_file_schedule',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({filename: selectedFile}),
+                success: function(response) {
+                    if (response.success) {
+                        var data = response.data;
+                        updateCalendar(data);
+                        showNotification('success', 'Program berhasil di load!.');
+                    } else {
+                        showNotification('danger', response.message || 'Error! Terjadi Kesalahan.');
+                    }
+                }
+            });
+        }
+
+
+        // Menyimpan jadwal 
+        function saveSchedule() {
+            if (!currentSchedule || currentSchedule.length === 0) {
+                showNotification('danger', 'Jadwal Kosong! Silahkan Buat Jadwal Terlebih Dahulu.');
+                return;
+            }
+            
+            $.ajax({
+                url: '/save_schedule',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(currentSchedule),
+                success: function(data) {
+                    showNotification(data.success ? 'success' : 'danger', data.message);
+                }
+            });
+        }
+
+        function addNameField() {
+            var nameField = '<div class="input-group mb-2">' +
+                                '<input type="text" class="worker-name form-control" placeholder="Employee Name">' +
+                                '<button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>' +
+                            '</div>';
+            $("#names-list").append(nameField);
+        }
+
+        function removeNameField(button) {
+            $(button).closest(".input-group").remove();
+        }
+
+        function optimize() {
+            $('#optimizing').show();
+            $('#btn-optimize').attr('disabled', true);
+
+            var names = [];
+            $('.worker-name').each(function() {
+                names.push($(this).val());
+            });
+
+            $.ajax({
+                url: '/optimize',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ names: names }),
+                success: function(data) {
+                    updateCalendar(data);
+                    $('#optimizing').hide();
+                    $('#btn-optimize').attr('disabled', false);
+                }
+            });
+        }
+
+
+        function updateCalendar(data) {
+            console.log('updateCalendar');
+            var events = transformToEvents(data);
+            currentSchedule = data; // Simpan Jadwal
+            calendar.removeAllEventSources();
+            calendar.addEventSource(events);
+            generateMetrics(data);
+            generateMonthlyMetrics(data);
+        }
+
+        var currentYear = new Date().getFullYear();
+
+        function getDateFromWeek(weekNumber, year) {
+            // Pertama, cari tanggal pertama dari minggu yang diberikan
+            const janFirst = new Date(year, 0, 1);
+            const janFirstDayOfWeek = janFirst.getDay();
+            const daysToNextMonday = (janFirstDayOfWeek === 0 ? 1 : 8 - janFirstDayOfWeek);
+            
+            const firstMondayOfYear = new Date(janFirst.setDate(daysToNextMonday));
+            
+            // Hitung tanggal berdasarkan minggu
+            const resultDate = new Date(firstMondayOfYear);
+            resultDate.setDate(firstMondayOfYear.getDate() + (weekNumber - 1) * 7);
+            
+            return resultDate;
+        }
+
+        function transformToEvents(data) {
+            return data.map(function(week, index) {
+                var startDate = getDateFromWeek(index, currentYear);
+                startDate.setDate(startDate.getDate() + 1); // Tambahkan 1 hari untuk perbaikan shift
+                
+                var endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6); // Tambahkan 6 hari untuk mencapai hari Minggu
+                
+                // Shift 1 Senin- Kamis : 10:00 AM - 18:00 PM, Jum'at: 10:00 AM - 20:00 PM
+                var shift1Start = new Date(startDate);
+                shift1Start.setHours(10, 0);
+                
+                var shift1End;
+                if (startDate.getDay() === 5) {
+                    // Jika di Hari Jumat
+                    shift1End = new Date(startDate);
+                    shift1End.setHours(20, 0);
+                } else if (startDate.getDay() >= 1 && startDate.getDay() <= 4) { // Senin-Kamis
+                    shift1End = new Date(startDate);
+                    shift1End.setHours(18, 0);
+                } else {
+                    // Untuk hari lainnya (Sabtu dan Minggu) dan bisa diatur sesuai kebutuhan
+                    shift1End = new Date(startDate);
+                    shift1End.setDate(shift1End.getDate() + 4);
+                    shift1End.setHours(10, 0);
+                }
+
+                // Shift 2 dari Jam 14:00 PM - 22:00 PM
+                var shift2Start = new Date(startDate);
+                shift2Start.setHours(14, 0);
+                
+                var shift2End = new Date(shift2Start);
+                // Dimajukan sehari
+                shift2End.setHours(22, 0);
+
+                // Atur shift 2 berdasarkan hari
+                if (startDate.getDay() === 5) {
+                    // Jika di hari Jum'at, shift berakhir pada hari yang sama 
+                    shift2End = new Date(shift2Start);
+                    shift2End.setHours(22, 0);
+                } else if (startDate.getDay() >= 1 && startDate.getDay() <= 5) {
+                    // Jika hari Senin sampai Kamis, shift berakhir pada hari yang sama
+                    shift2End = new Date(shift2Start);
+                    shift2End.setHours(22, 0);
+                } else {
+                    // Untuk hari lainnya (Sabtu dan Minggu), bisa diatur untuk jadwal shift 
+                    shift2End = new Date(shift2Start); 
+                    shift2End.setHours(20, 0);
+                }
+
+                // Shift 3 dari jam 12:00 PM - 20:00 PM
+                var shift3Start = new Date(startDate);
+                shift3Start.setHours(12, 0);
+                
+                var shift3End = new Date(shift3Start);
+                shift3End.setHours(20, 0);
+                
+                // Atur shift 3 End berdasarkan hari
+                if (startDate.getDay() >= 0 && startDate.getDay() <= 6) { // Untuk semua hari (Senin - Minggu)
+                    // Shift 3 berlaku untuk semua hari
+                    shift3End = new Date(shift3Start);
+                    shift3End.setHours(20, 0);
+                } else {
+                    // Untuk hari lainnya, bisa diatur sesuai kebutuhan
+                    shift3End = new Date(shift3Start); // Atur sesuai kebutuhan
+                    shift3End.setHours(0, 0); 
+                }
+
+                // Shift 4 dari jam 10:00 AM - 20:00 PM 
+                var shift4Start = new Date(startDate);
+                shift4Start.setHours(10, 0);
+
+                var shift4End = new Date(shift4Start);
+                shift4End.setHours(20, 0);
+
+                // Atur shift 4 berdasarkan hari Senin-Minggu
+                if (startDate.getDay() >= 0 && startDate.getDay() <= 6) {
+                    shift4End = new Date(shift4Start);
+                    shift4End.setHours(20, 0);
+                } else {
+                    // Untuk hari lain, bisa diatur sesuai kebutuhan
+                    shift4End = new Date(shift4Start); // Atur sesuai kebutuhan apabila jam shift diubah
+                    shift4End.setHours(0, 0);
+                }
+
+                // Shift 5 dari jam 10:00 AM - 19:00 PM
+                var shift5Start = new Date(startDate);
+                shift5Start.setHours(10, 0);
+
+                var shift5End = new Date(shift5Start);
+                shift5End.setHours(19, 0);
+
+                // Atur jam akhir shift berdasarkan hari 
+                if (startDate.getDay() >= 0 && startDate.getDay() <= 6) { // Untuk semua hari (Senin - Minggu)
+                    shift5End = new Date(shift5Start);
+                    shift5End.setHours(19, 0);
+                } else {
+                    // Untuk hari lainnya, bisa diatur sesuai kebutuhan jam shift
+                    shift5End = new Date(shift4Start); // Atur sesuai kebutuhan jam shift 
+                    shift5End.setHours(0, 0); // Apabila tidak ada jam shift
+                }
+
+                // Shift 6 dari jam 10:00 AM - 22:00 PM
+                var shift6Start = new Date(startDate);
+                shift6Start.setHours(10, 0);
+                
+                var shift6End = new Date(shift6Start);
+                shift6End.setHours(22, 0);
+
+                // Atur jam shift 6 berdasarkan hari 
+                if (startDate.getDay() >= 0 && startDate.getDay() <= 6) {
+                    // Shift 6 berlaku apabila dibutuhkan ketika toko ramai
+                    shift6End = new Date(shift6Start);
+                    shift6End.setHours(22, 0);
+                } else {
+                    // Untuk hari lain, bisa diatur sesuai kebutuhan
+                    shift6End = new Date(shift6Start);
+                    shift6End.setHours(0, 0); // Apabila tidak ada jam shift
+                }
+
+                // Shift 7 Libur (Off Day)
+                var offDayStart = new Date(startDate);
+                offDayStart.setHours(0, 0);
+
+                var offDayEnd = new Date(offDayStart);  
+                offDayEnd.setHours(23, 59);
+
+                // Menentukan off day berdasarkan hari weekday
+                if (startDate.getDay() >= 1 && startDate.getDay() <= 4) { // Senin - Kamis
+                    offDayStart.setDate(offDayStart.getDate()); // Tetap dihari yang sama
+                    offDayEnd.setDate(offDayEnd.getDate()); // Selesai pada waktu akhir 
+                } else if (startDate.getDay() == 5) {
+                    offDayStart.setDate(offDayStart.getDate() + 2); // Set ke hari minggu 
+                    offDayEnd.setDate(offDayEnd.getDate() + 1); // Selesai pada akhir hari Minggu
+                } else {
+                    offDayStart.setDate(offDayStart.getDate() - 1); // set ke hari Jum'at
+                    offDayEnd.setDate(offDayEnd.getDate()); // Selesai pada akhir hari
+                }
+                offDayStart.setHours(0, 0); // Mulai dari tengah malam
+                offDayEnd.setHours(23, 59); // selesai waktu akhir jam 11:59 PM
+
+                return [
+                    { title: 'Shift 1: ' + week[0], start: shift1Start, end: shift1End, color: '#FF8C00' }, 
+                    { title: 'Shift 2: ' + week[1], start: shift2Start, end: shift2End, color: '#FCD703' }, 
+                    { title: 'Shift 3: ' + week[2], start: shift3Start, end: shift3End, color: '#338A11' },
+                    { title: 'Shift 4: ' + week[3], start: shift4Start, end: shift4End, color: '#5050DB' },
+                    { title: 'Shift 5: ' + week[4], start: shift5Start, end: shift5End, color: '#0E1EC9'},
+                    { title: 'Shift 6: ' + week[5], start: shift6Start, end: shift6End, color: '#910CC2'},
+                    { title: 'Libur: ' + week[6], start: offDayStart, end: offDayEnd, color: '#FF0000'}
+                ];
+            }).flat();
+        }
+
+        function generateMetrics(data) {
+            const counts = {};
+            
+            data.forEach(function(week) {
+                counts[week[0]] = counts[week[0]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0};
+                counts[week[0]].shift1 += 1;
+                
+                counts[week[1]] = counts[week[1]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0};
+                counts[week[1]].shift2 += 1;
+                
+                counts[week[2]] = counts[week[2]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0};
+                counts[week[2]].shift3 += 1;
+
+                counts[week[3]] = counts[week[3]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0};
+                counts[week[3]].shift4 += 1;
+
+                counts[week[4]] = counts[week[4]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0};
+                counts[week[4]].shift5 += 1;
+
+                counts[week[5]] = counts[week[5]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0};
+                counts[week[5]].shift6 += 1;
+
+                counts[week[6]] = counts[week[6]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0};
+                counts[week[6]].offDay += 1;
+            });
+
+            let tableHTML = '<h4>Metriks Tahunan</h4>';
+            tableHTML += '<table class="table table-striped table-bordered">'; 
+            tableHTML += '<thead><tr><th>Nama Karyawan</th><th>Shift 1</th><th>Shift 2</th><th>Shift 3</th><th>Shift 4</th><th>Shift 5</th><th>Shift 6</th><th>Libur</th></tr></thead><tbody>';
+
+            for (const [name, shift] of Object.entries(counts)) {
+                tableHTML += `<tr><td>${name}</td><td>${shift.shift1}</td><td>${shift.shift2}</td><td>${shift.shift3}</td><td>${shift.shift4}</td><td>${shift.shift5}</th><th>${shift.shift6}</th><th>${shift.offDay}</th></tr>`;
+            }
+
+            tableHTML += '</tbody></table>';
+
+            const metricsDiv = document.getElementById('metrics');
+            metricsDiv.innerHTML = tableHTML;
+        }
+
+        function getMonthFromDate(date) {
+            return date.getMonth();
+        }
+
+        function generateMonthlyMetrics(data) {
+            const counts = {};
+
+            console.log('generateMonthlyMetrics');
+            console.log(data);
+            
+            data.forEach((week, weekIndex) => {
+                const date = getDateFromWeek(weekIndex, currentYear);
+            console.log(date);
+
+                const month = date.getMonth();
+                
+                if (!counts[month]) {
+                    counts[month] = {};
+                }
+
+                ["shift1", "shift2", "shift3", "shift4", "shift5", "shift6", "offDay"].forEach((shiftType, index) => {
+                    const name = week[index];
+                    if (!counts[month][name]) {
+                        counts[month][name] = { 'shift1': 0, 'shift2': 0, 'shift3': 0, 'shift4': 0, 'shift5': 0, 'shift6': 0, 'offDay': 0 };
+                    }
+                    counts[month][name][shiftType]++;
+                });
+            });
+            console.log(counts);
+            
+            let tableHTML = '<h4>Metriks Bulanan</h4>';
+            tableHTML += '<table class="table table-striped table-bordered">';
+            tableHTML += '<thead><tr><th>Bulan</th><th>Nama Karyawan</th><th>Shift 1</th><th>Shift 2</th><th>Shift 3</th><th>Shift 4</th><th>Shift 5</th><th>Shift 6</th><th>Libur</th></tr></thead><tbody>';
+
+            for (const [month, names] of Object.entries(counts)){
+                
+                for (const [name, shift] of Object.entries(names)) {
+                    tableHTML += `<tr><td>${new Date(currentYear, month, 1).toLocaleString('id-ID', { month: 'long' })}</td><td>${name}</td><td>${shift.shift1}</td><td>${shift.shift2}</td><td>${shift.shift3}</td><td>${shift.shift4}<td>${shift.shift5}</td><td>${shift.shift6}</td><td>${shift.offDay}</td></tr>`;
+        }
+    }
+
+    tableHTML += '</tbody></table>';
+
+    const metricsDiv = document.getElementById('monthlyMetrics');
+    metricsDiv.innerHTML = tableHTML;
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+/* styles.css */
+.hidden {
+    display: none;
+}
+
+.optimizing {
+    display: none;
+    margin-top: 1rem;
+}
+
+.badge-day.shift-1 {
+    background-color: #FF8C00;
+    color: white;
+}
+
+.badge-day.shift-2 {
+    background-color: #FCD703;
+    color: white;
+}
+
+.badge-day.shift-3 {
+    background-color: #338A11;
+    color: white;
+}
+
+.badge-day.shift-4 {
+    background-color: #5050DB;
+    color: white;
+}
+
+.badge-day.shift-5 {
+    background-color: #0E1EC9;
+    color: white;
+}
+
+.badge-day.shift-6 {
+    background-color: #910CC2;
+    color: white;
+}
+
+.badge-off.shift-7 {
+    background-color: #ff0000;
+    color: white;
+}
