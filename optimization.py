@@ -62,6 +62,14 @@ def is_valid(individual):
     Fungsi ini memeriksa apakah jadwal valid dengan aturan-aturan yang telah ditentukan.
     :param individual: Daftar mingguan, dimana setiap minggunya adalah daftar bilangan bulat yang mewakili pekerja atau karyawan.
     :return: True jika jadwal valid, False jika tidak.
+
+    Aturan shift: 
+    1. Tidak seorang pun yang dapat mengambil cuti atau pergi selama akhir pekan, libur hanya di weekday saja
+    2. Sebelum mengambil cuti, karyawan biasanya akan diberikan shift 1 atau 4; setelah cuti, mereka akan diberikan shift 2
+    3. Laki-laki yang beragama Islam tidak diperkenankan mengambil shift 1, 4 dan 3 setiap hari Jum'at dikarenakan ada ibadah shalat Jum'at
+    4. Jika toko sedang ramai, khususnya weekend (Jum'at sampai Minggu), perusahaan tetapkan karyawan di shift 4
+    5. Tidak mungkin hanya satu orang yang menutup toko, harus ada 1 orang lagi yang membantu untuk menutup toko 
+    6. Jika karyawan memiliki shift malam, sebisa mungkin hindari bekerja shift pagi pada hari berikutnya
     """
     if not individual:
         return False
