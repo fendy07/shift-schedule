@@ -13,6 +13,7 @@ NAMES = ["Dimas", "Dinda",
          "Putri"]
 
 MUSLIM_MEN = ["Dimas", "Dzaki", "Riza", "Mugny"]
+DAYS_OF_WEEK = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu", "Minggu"]
 
 SHIFTS = {
     1: ("10:00 AM", "18:00 PM"), # Shift 1
@@ -47,7 +48,7 @@ NUM_EMPLOYEES = len(NAMES)
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMax, strategy=list)
 
-# Fungsi untuk inisialisasi individu (kromosom)
+## Fungsi untuk inisialisasi individu (kromosom)
 def create_individual():
     return [[random.randint(1, NUM_SHIFTS) for _ in range(NUM_DAYS)] for _ in range(NUM_EMPLOYEES)]
 
@@ -59,7 +60,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 def is_valid(individual):
     """
     Fungsi ini memeriksa apakah jadwal valid dengan aturan-aturan yang telah ditentukan.
-    :param individual: Daftar mingguan, dimana setiap minggunya adalah daftar empat atau lima bilangan bulat yang mewakili pekerja atau karyawan.
+    :param individual: Daftar mingguan, dimana setiap minggunya adalah daftar bilangan bulat yang mewakili pekerja atau karyawan.
     :return: True jika jadwal valid, False jika tidak.
     """
     if not individual:
@@ -71,7 +72,31 @@ def is_valid(individual):
             week.append(-1)  # Append a default value for off day if missing
         # Unpack the week into shifts and off day
         shift1, shift2, shift3, shift4, shift5, shift6, off = week
-        # Apabila karyawan sudah mendapatkan shift malam maka tidak diperbolehkan ambil shift pagi di hari berikutnya
+
+        # Aturan 1: Tidak diperkenankan mengambil libur atau cuti di akhir pekan (weekend) hanya boleh di weekday saja
+        if off in [7, -1] and (i == 5 or i == 6): # i == 5 adalah hari Sabtu, 1 == 6 adalah hari Minggu
+            return False
+
+        # Aturan 2: Sebelum mengambil cuti atau libur karyawan akan diberikan shift 1 atau 4, dan setelah cuti/libur diberikan shift 2
+        if off in [7, -1] and i > 0:
+            hari_sebelumnya = individual[i - 1][-1] # Hari sebelum libur/cuti
+            if hari_sebelumnya not in [1, 4]:
+                return False
+
+        if off in [7, -1] and i < len(individual) -1:
+            hari_berikutnya = individual[i + 1][0] # Hari setelah libur/cuti
+            if hari_berikutnya != 2:
+                return False
+
+        # Aturan 4: Pada weekend (Jumat, Sabtu, Minggu), pekerja harus di shift 4 (shift ramai)
+        if i in [4, 5, 6] and shift4 == -1: # Indeks 4, 5, 6 menunjukan hari Jum'at, Sabtu dan Minggu
+            return False # Jika tidak ada pekerja di shift 4 pada hari ini, jadwal tidak valid
+
+        # Aturan 5: Untuk menutup toko harus lebih dari 1 orang (misalnya shift 6)
+        if shift6 != -1 and shift6 == shift1:
+            return False 
+
+        # Aturam 6: Apabila karyawan sudah mendapatkan shift malam maka tidak diperbolehkan ambil shift pagi di hari berikutnya
         if shift1 == shift2 or shift1 == shift3 or shift1 == shift4 or shift1 == shift5 or shift1 == shift6 or off == -1:
             return True
         
@@ -86,7 +111,7 @@ def is_valid(individual):
         
         if shift1 == shift2 or shift3 == shift4 or shift5 == shift6 or shift2 == shift1:
             return False
-    # Teruntuk karyawan laki-laki yang beragama Islam, tidak disarankan mengambil shift 1, 3 dan 4 pada hari Jum'at
+    # Aturan 3: Teruntuk karyawan laki-laki yang beragama Islam, tidak disarankan mengambil shift 1, 3 dan 4 pada hari Jum'at
     for i, week in enumerate(individual):
         if i == 4:
             if week[0] in [shift1, shift3, shift4] and week[0] in MUSLIM_MEN:
@@ -135,7 +160,7 @@ def init_individual():
         attempts += 1
         if attempts > 10:
             break
-    # Ensure the individual has 7 elements (6 shifts + 1 off day)
+    # Ensure the individual has 7 elements: 6 shifts + 1 off day
     if len(individual) > 0 and len(individual[-1]) < 7:
         individual[-1].append(-1)  # Assuming -1 represents an off day or invalid shift
 
@@ -178,7 +203,7 @@ def evaluate(individual, year=TAHUN_SEKARANG):
 
     #return fitness,
     def calculate_variance(counts, expected):
-        return sum([(count - expected) ** 2 for count in counts.values()]) / len(NAMES)
+        return sum([(count - expected) ** 2 for count in counts.values()]) / len(NAMES) / len(MUSLIM_MEN)
     
     # Initialize shifts lists
     shift1, shift2, shift3, shift4, shift5, shift6, off = [], [], [], [], [], [], []
@@ -223,7 +248,7 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         month_off = off[first_week-1:last_week]
 
         weeks_in_month = last_week - first_week + 1
-        expected_days_in_month = weeks_in_month / len(NAMES)
+        expected_days_in_month = weeks_in_month / len(NAMES) / len(MUSLIM_MEN)
 
         month_variances.append(sum([
             calculate_variance({i: month_shift1.count(i) for i in set(month_shift1)}, expected_days_in_month),
@@ -235,6 +260,7 @@ def evaluate(individual, year=TAHUN_SEKARANG):
             calculate_variance({i: month_off.count(i) for i in set(month_off)}, expected_days_in_month)
         ]))
 
+    # Hitung total variance berdasarkan tahun dan bulan
     total_variance = 2 * year_variance + sum(month_variances)
 
     return total_variance,
@@ -248,7 +274,7 @@ def mutate_individual(ind, year=TAHUN_SEKARANG):
     """
     #for emp_schedule in ind:
         # Untuk setiap karyawan, iterasi setiap hari
-    #    for i in range(len(emp_schedule)):
+    ##    for i in range(len(emp_schedule)):
     #        if random.random() < indpb:
                 # Ganti shift di hari tersebut dengan shift acak
     #            emp_schedule[i] = random.randint(1, NUM_SHIFTS)
@@ -279,7 +305,7 @@ def setup_toolbox():
 
     toolbox.register("individual", tools.initIterate, creator.Individual, init_individual)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-    toolbox.register("mate", tools.cxESTwoPoint)
+    toolbox.register("mate", tools.cxTwoPoint)
     toolbox.register("mutate", mutate_individual)
     toolbox.register("select", tools.selTournament, tournsize=5)
     toolbox.register("evaluate", evaluate)
@@ -298,7 +324,6 @@ def convert_to_names(individual, names):
                 named_week.append(names[shift])
             else:
                 named_week.append(names)
-                print(names)  # Handle invalid shifts
         named_schedule.append(named_week)
     return named_schedule
 
@@ -334,6 +359,9 @@ def optimized_schedule(names, year=TAHUN_SEKARANG, generations=200, population_s
         # Offspring
         for child1, child2 in zip(offspring[::2], offspring[1::2]):
             if random.random() < CXPB:
+                size = len(child1) # Mendapatkan size dari individual
+                if size <= 1:
+                    raise ValueError("Size must be greater than 1") 
                 toolbox.mate(child1, child2)
                 del child1.fitness.values
                 del child2.fitness.values

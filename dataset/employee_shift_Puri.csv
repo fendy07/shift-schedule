@@ -1,0 +1,125 @@
+Employee_Name,Day_of_the_Month,Day_of_the_Week,Gender,Religion,Shift_ID
+Mugny,1,Selasa,Laki-laki,Islam,2
+Mugny,2,Rabu,Laki-laki,Islam,3
+Mugny,3,Kamis,Laki-laki,Islam,6
+Mugny,4,Jum'at,Laki-laki,Islam,2
+Mugny,5,Sabtu,Laki-laki,Islam,3
+Mugny,6,Minggu,Laki-laki,Islam,7
+Mugny,7,Senin,Laki-laki,Islam,5
+Mugny,8,Selasa,Laki-laki,Islam,4
+Mugny,9,Rabu,Laki-laki,Islam,7
+Mugny,10,Kamis,Laki-laki,Islam,5
+Mugny,11,Jum'at,Laki-laki,Islam,3
+Mugny,12,Sabtu,Laki-laki,Islam,2
+Mugny,13,Minggu,Laki-laki,Islam,7
+Mugny,14,Senin,Laki-laki,Islam,7
+Mugny,15,Selasa,Laki-laki,Islam,6
+Mugny,16,Rabu,Laki-laki,Islam,7
+Mugny,17,Kamis,Laki-laki,Islam,7
+Mugny,18,Jum'at,Laki-laki,Islam,1
+Mugny,19,Sabtu,Laki-laki,Islam,2
+Mugny,20,Minggu,Laki-laki,Islam,6
+Mugny,21,Senin,Laki-laki,Islam,4
+Mugny,22,Selasa,Laki-laki,Islam,4
+Mugny,23,Rabu,Laki-laki,Islam,2
+Mugny,24,Kamis,Laki-laki,Islam,6
+Mugny,25,Jum'at,Laki-laki,Islam,2
+Mugny,26,Sabtu,Laki-laki,Islam,4
+Mugny,27,Minggu,Laki-laki,Islam,3
+Mugny,28,Senin,Laki-laki,Islam,7
+Mugny,29,Selasa,Laki-laki,Islam,2
+Mugny,30,Rabu,Laki-laki,Islam,5
+Mugny,31,Kamis,Laki-laki,Islam,7
+Rini,1,Selasa,Perempuan,Islam,3
+Rini,2,Rabu,Perempuan,Islam,5
+Rini,3,Kamis,Perempuan,Islam,4
+Rini,4,Jum'at,Perempuan,Islam,1
+Rini,5,Sabtu,Perempuan,Islam,6
+Rini,6,Minggu,Perempuan,Islam,4
+Rini,7,Senin,Perempuan,Islam,7
+Rini,8,Selasa,Perempuan,Islam,3
+Rini,9,Rabu,Perempuan,Islam,2
+Rini,10,Kamis,Perempuan,Islam,2
+Rini,11,Jum'at,Perempuan,Islam,3
+Rini,12,Sabtu,Perempuan,Islam,2
+Rini,13,Minggu,Perempuan,Islam,5
+Rini,14,Senin,Perempuan,Islam,6
+Rini,15,Selasa,Perempuan,Islam,4
+Rini,16,Rabu,Perempuan,Islam,5
+Rini,17,Kamis,Perempuan,Islam,7
+Rini,18,Jum'at,Perempuan,Islam,1
+Rini,19,Sabtu,Perempuan,Islam,3
+Rini,20,Minggu,Perempuan,Islam,3
+Rini,21,Senin,Perempuan,Islam,6
+Rini,22,Selasa,Perempuan,Islam,1
+Rini,23,Rabu,Perempuan,Islam,6
+Rini,24,Kamis,Perempuan,Islam,3
+Rini,25,Jum'at,Perempuan,Islam,4
+Rini,26,Sabtu,Perempuan,Islam,1
+Rini,27,Minggu,Perempuan,Islam,1
+Rini,28,Senin,Perempuan,Islam,7
+Rini,29,Selasa,Perempuan,Islam,7
+Rini,30,Rabu,Perempuan,Islam,2
+Rini,31,Kamis,Perempuan,Islam,2
+Putri,1,Selasa,Perempuan,Islam,3
+Putri,2,Rabu,Perempuan,Islam,6
+Putri,3,Kamis,Perempuan,Islam,7
+Putri,4,Jum'at,Perempuan,Islam,6
+Putri,5,Sabtu,Perempuan,Islam,4
+Putri,6,Minggu,Perempuan,Islam,2
+Putri,7,Senin,Perempuan,Islam,1
+Putri,8,Selasa,Perempuan,Islam,3
+Putri,9,Rabu,Perempuan,Islam,6
+Putri,10,Kamis,Perempuan,Islam,4
+Putri,11,Jum'at,Perempuan,Islam,4
+Putri,12,Sabtu,Perempuan,Islam,4
+Putri,13,Minggu,Perempuan,Islam,5
+Putri,14,Senin,Perempuan,Islam,2
+Putri,15,Selasa,Perempuan,Islam,1
+Putri,16,Rabu,Perempuan,Islam,3
+Putri,17,Kamis,Perempuan,Islam,5
+Putri,18,Jum'at,Perempuan,Islam,4
+Putri,19,Sabtu,Perempuan,Islam,3
+Putri,20,Minggu,Perempuan,Islam,2
+Putri,21,Senin,Perempuan,Islam,7
+Putri,22,Selasa,Perempuan,Islam,2
+Putri,23,Rabu,Perempuan,Islam,7
+Putri,24,Kamis,Perempuan,Islam,6
+Putri,25,Jum'at,Perempuan,Islam,3
+Putri,26,Sabtu,Perempuan,Islam,2
+Putri,27,Minggu,Perempuan,Islam,6
+Putri,28,Senin,Perempuan,Islam,6
+Putri,29,Selasa,Perempuan,Islam,7
+Putri,30,Rabu,Perempuan,Islam,4
+Putri,31,Kamis,Perempuan,Islam,4
+Sri Wahyuni,1,Selasa,Perempuan,Islam,4
+Sri Wahyuni,2,Rabu,Perempuan,Islam,5
+Sri Wahyuni,3,Kamis,Perempuan,Islam,5
+Sri Wahyuni,4,Jum'at,Perempuan,Islam,3
+Sri Wahyuni,5,Sabtu,Perempuan,Islam,7
+Sri Wahyuni,6,Minggu,Perempuan,Islam,1
+Sri Wahyuni,7,Senin,Perempuan,Islam,7
+Sri Wahyuni,8,Selasa,Perempuan,Islam,6
+Sri Wahyuni,9,Rabu,Perempuan,Islam,6
+Sri Wahyuni,10,Kamis,Perempuan,Islam,3
+Sri Wahyuni,11,Jum'at,Perempuan,Islam,2
+Sri Wahyuni,12,Sabtu,Perempuan,Islam,6
+Sri Wahyuni,13,Minggu,Perempuan,Islam,7
+Sri Wahyuni,14,Senin,Perempuan,Islam,4
+Sri Wahyuni,15,Selasa,Perempuan,Islam,1
+Sri Wahyuni,16,Rabu,Perempuan,Islam,6
+Sri Wahyuni,17,Kamis,Perempuan,Islam,1
+Sri Wahyuni,18,Jum'at,Perempuan,Islam,4
+Sri Wahyuni,19,Sabtu,Perempuan,Islam,7
+Sri Wahyuni,20,Minggu,Perempuan,Islam,5
+Sri Wahyuni,21,Senin,Perempuan,Islam,6
+Sri Wahyuni,22,Selasa,Perempuan,Islam,3
+Sri Wahyuni,23,Rabu,Perempuan,Islam,4
+Sri Wahyuni,24,Kamis,Perempuan,Islam,2
+Sri Wahyuni,25,Jum'at,Perempuan,Islam,3
+Sri Wahyuni,26,Sabtu,Perempuan,Islam,7
+Sri Wahyuni,27,Minggu,Perempuan,Islam,4
+Sri Wahyuni,28,Senin,Perempuan,Islam,1
+Sri Wahyuni,29,Selasa,Perempuan,Islam,4
+Sri Wahyuni,30,Rabu,Perempuan,Islam,3
+Sri Wahyuni,31,Kamis,Perempuan,Islam,2

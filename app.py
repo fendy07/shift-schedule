@@ -1,11 +1,12 @@
-from datetime import datetime
-from flask import Flask, render_template, request, jsonify
-from optimization import optimized_schedule
-import hashlib
-import json
 import os
+import json
+import hashlib
+from datetime import datetime
+from optimization import optimized_schedule
+from flask import Flask, render_template, request, jsonify
 
-SAVE_PATH = "saved_schedules"  # Folder untuk menyimpan jadwal
+# Folder untuk menyimpan jadwal
+SAVE_PATH = "saved_schedules"  
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
@@ -51,7 +52,7 @@ def save_schedule():
 
     return jsonify(success=True, message="Program berhasil disimpan!")
 
-
+# Load file Schedule ketika data sudah mendapatkan hasil dan ter-generate 
 @app.route('/load_file_schedule', methods=['POST'])
 def load_file_schedule():
     try:
@@ -71,16 +72,6 @@ def load_file_schedule():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
-    #filepath = os.path.join(SAVE_PATH, filename)
-    #if not os.path.exists(filepath):
-    #    return jsonify(success=False, message="File Tidak Ditemukan!")
-
-    #with open(filepath, 'r') as f:
-    #    schedule = json.load(f)
-
-    #return jsonify(success=True, data=schedule)
-
-
 @app.route('/list_schedules', methods=['GET'])
 def list_schedules():
     files = os.listdir(SAVE_PATH)
@@ -90,14 +81,6 @@ def list_schedules():
 
 @app.route('/optimize', methods=['POST'])
 def optimize():
-    #if request.is_json:
-    #    data = request.get_json()
-    #    names = data['names']
-    #    optimized_schedule = optimize_schedule(names, generations=200)
-    #    # Processing data
-    #    return jsonify({'optimized_schedule': optimized_schedule, 'message': 'Optimization Successful!'}), 200
-    #else:
-    #    return 'Unsupported Media Type', 415
     data = request.json
     names = data['names']
     muslim = data.get('muslims')

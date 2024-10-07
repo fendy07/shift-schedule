@@ -10,40 +10,42 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
     <div id="notification" class="mt-0"></div>
-    <div class="container mt-5">    
-        <h1 class="mb-4">Penjadwalan Shift</h1>
 
+    <div class="container mt-5">    
+        <h1 class="mb-4"><center>Penjadwalan Shift</center></h1>
+        <!-- Employee Input Section -->
         <div class="mb-3">
             <label>Masukan Nama Karyawan</label>
             <div id="names-list">
                 <!-- Default Names -->
                 <div class="input-group mb-2">
-                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Rika">
+                    <input type="text" class="worker-name form-control" placeholder="Masukan Nama Karyawan" aria-label="Nama Karyawan">
                     <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
                 </div>
                 <div class="input-group mb-2">
-                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Riza">
+                    <input type="text" class="worker-name form-control" placeholder="Masukan Nama Karyawan" aria-label="Nama Karyawan">
                     <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
                 </div>
                 <div class="input-group mb-2">
-                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Dimas">
+                    <input type="text" class="worker-name form-control" placeholder="Masukan Nama Karyawan" aria-label="Nama Karyawan">
                     <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
                 </div>
                 <div class="input-group mb-2">
-                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Dinda">
+                    <input type="text" class="worker-name form-control" placeholder="Masukan Nama Karyawan" aria-label="Nama Karyawan">
                     <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
                 </div>
                 <div class="input-group mb-2">
-                    <input type="text" class="worker-name form-control" placeholder="employee name" value="Hikmah">
+                    <input type="text" class="worker-name form-control" placeholder="Masukan Nama Karyawan" aria-label="Nama Karyawan">
                     <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
                 </div>
                 <div class="input-group mb-2">
-                    <input type="text" class="worker-name form-control" placeholder="add employee name" value="Antika">
+                    <input type="text" class="worker-name form-control" placeholder="Masukan Nama Karyawan" aria-label="Nama Karyawan">
                     <button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
                 </div>
                 <!-- Akhir nama default -->
@@ -51,9 +53,11 @@
             <button class="btn btn-info mb-2" onclick="addNameField()">Tambah Nama Karyawan</button>
         </div>
         <hr />
+        <!-- Action Buttons -->
         <button id="btn-optimize" class="btn btn-warning" onclick="optimize()">Buat Kalendar</button>
         <button class="btn btn-success" onclick="saveSchedule()">Simpan Kalendar</button>
-        <div id="optimizing" class="mt-3 hidden">
+        <!--Optimizing Buttons -->
+        <div id="optimizing" class="mt-3 d-none">
             <div class="spinner-border text-warning" role="status">
                 <span class="sr-only">Optimasi...</span>
             </div>
@@ -72,30 +76,83 @@
             </div>
             <div class="col-md-6">
                 <button class="btn btn-primary" onclick="loadSchedule()">Memuat Program Kalendar</button>
-                <button class="btn btn-secondary" onclick="listFiles()" title="Refresh Files">
+                <button class="btn btn-secondary" onclick="listFiles()" title="Muat Ulang" aria-label="Refresh files">
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
         </div>
 
         <hr />
+        <!--Fitur shift yang ditampilkan-->
         <div class="mb-3">
-            <span class="badge badge-day shift-1">Shift 1 (10:00 - 18:00)</span>
-            <span class="badge badge-day shift-2">Shift 2 (14:00 - 22:00)</span>
-            <span class="badge badge-day shift-3">Shift 3 (12:00 - 20:00)</span>
-            <span class="badge badge-day shift-4">Shift 4 (10:00 - 20:00)</span>
-            <span class="badge badge-day shift-5">Shift 5 (10:00 - 19:00)</span>
-            <span class="badge badge-day shift-6">Shift 6 (10:00 - 22:00)</span>
-            <span class="badge badge-off shift-7">Libur (Off Day)</span>
+            <span class="badge shift-1">Shift 1 (10:00 - 18:00)</span>
+            <span class="badge shift-2">Shift 2 (14:00 - 22:00)</span>
+            <span class="badge shift-3">Shift 3 (12:00 - 20:00)</span>
+            <span class="badge shift-4">Shift 4 (10:00 - 20:00)</span>
+            <span class="badge shift-5">Shift 5 (10:00 - 19:00)</span>
+            <span class="badge shift-6">Shift 6 (10:00 - 22:00)</span>
+            <span class="badge badge-off off">Libur (Off Day)</span>
         </div>
         <div id='calendar'></div>
         <hr/>
+        <!-- Metrics Display -->
         <div id="metrics"></div>
         <div id="monthlyMetrics" class="mt-5"></div>
     </div>
 
     <script>
         var currentSchedule = [];
+        var calendar;
+        var mySlots = [
+            {
+                id: 1, name: 'Pagi',
+                id: 2, name: 'Siang',
+            }
+        ];
+        var shifts = [
+            {
+                start: 'dyndatetime(y, m, d-2, 10)',
+                end: 'dyndatetime(y, m, d-2, 18)',
+                title: 'Shift 1',
+                resource: 1,
+                slot: 1
+            },
+            {
+                start: 'dyndatetime(y, m, d-2, 14)',
+                end: 'dyndatetime(y, m, d-2, 22)',
+                title: 'Shift 2',
+                resource: 1,
+                slot: 2
+            },
+            {
+                start: 'dyndatetime(y, m, d-2, 12)',
+                end: 'dyndatetime(y, m, d-2, 20)',
+                title: 'Shift 3',
+                resource: 1,
+                slot: 2
+            },
+            {
+                start: 'dyndatetime(y, m, d-2, 10)',
+                end: 'dyndatetime(y, m, d-2, 20)',
+                title: 'Shift 4',
+                resource: 1,
+                slot: 1
+            },
+            {
+                start: 'dyndatetime(y, m, d-2, 10)',
+                end: 'dyndatetime(y, m, d-2, 19)',
+                title: 'Shift 5',
+                resource: 1,
+                slot: 1
+            },
+            {
+                start: 'dyndatetime(y, m, d-2, 10)',
+                end: 'dyndatetime(y, m, d-2, 22)',
+                title: 'Shift 6',
+                resource: 1,
+                slot: 1
+            }
+        ];
 
         function listFiles() {
             $.get('/list_schedules', function(files) {
@@ -119,25 +176,50 @@
         });
         
         function optimizeCalendar() {
-            $('#optimizing').show();
+            $('#optimizing').removeClass('d-none');
             $('#btn-optimize').attr('disabled', true);
-            $.post('/optimize', {}, function (data) {
-                updateCalendar(data);
-                $('#optimizing').hide();
-                $('#btn-optimize').attr('disabled', false);
+
+            var names = [];
+            $('.worker-name').each(function() {
+                names.push($(this).val());
             });
+
+            $.ajax({
+                url: '/optimize',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ names: names }),
+                success: function(data) {
+                    updateCalendar(data);
+                    $('#optimizing').addClass('d-none');
+                    $('#btn-optimize').attr('disabled', false);
+                }
+            });
+
         }
 
         function showNotification(type, message) {
-            var notification = $('#notification');
-            notification.html(`<div class="alert alert-${type}" role="alert">${message}</div>`);
-            setTimeout(function() {
-                notification.empty();
-            }, 3000);  // Notifikasi akan hilang setelah 3 detik
+            let swalType;
+            
+            if (type === 'success') {
+                swalType = 'success'; // Notifikasi sukses
+            } else if (type === 'error') {
+                swalType = 'error'; // Notifikasi error
+            } else if (type === 'warning') {
+                swalType = 'warning'; // Notifikasi warning
+            } else {
+                swalType = 'info';
+            }
+
+            Swal.fire({
+                icon: swalType,
+                title: message,
+                showConfirmButton: false,
+                timer: 5000 // Notifikasi akan hilang setelah 5 detik
+            });
         }
 
         function loadSchedule() {
-            console.log('loadSchedule');
             var selectedFile = $('#file-list').val();
             if (!selectedFile) {
                 showNotification('warning', 'Silahkan Pilih File Schedule!');
@@ -151,11 +233,10 @@
                 data: JSON.stringify({filename: selectedFile}),
                 success: function(response) {
                     if (response.success) {
-                        var data = response.data;
-                        updateCalendar(data);
-                        showNotification('success', 'Program berhasil di load!.');
+                        updateCalendar(response.data);
+                        showNotification('success', 'Program Berhasil di Load');
                     } else {
-                        showNotification('danger', response.message || 'Error! Terjadi Kesalahan.');
+                        showNotification('danger', response.message || 'Error! Terjadi Kesalahan');
                     }
                 }
             });
@@ -164,8 +245,8 @@
 
         // Menyimpan jadwal 
         function saveSchedule() {
-            if (!currentSchedule || currentSchedule.length === 0) {
-                showNotification('danger', 'Jadwal Kosong! Silahkan Buat Jadwal Terlebih Dahulu.');
+            if (currentSchedule.length === 0) {
+                showNotification('danger', 'Jadwal Kosong! Silahkan Buat Jadwal Terlebih Dahulu');
                 return;
             }
             
@@ -182,7 +263,7 @@
 
         function addNameField() {
             var nameField = '<div class="input-group mb-2">' +
-                                '<input type="text" class="worker-name form-control" placeholder="Employee Name">' +
+                                '<input type="text" class="worker-name form-control" placeholder="Masukan Nama Karyawan">' +
                                 '<button class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>' +
                             '</div>';
             $("#names-list").append(nameField);
@@ -214,9 +295,7 @@
             });
         }
 
-
         function updateCalendar(data) {
-            console.log('updateCalendar');
             var events = transformToEvents(data);
             currentSchedule = data; // Simpan Jadwal
             calendar.removeAllEventSources();
@@ -228,14 +307,14 @@
         var currentYear = new Date().getFullYear();
 
         function getDateFromWeek(weekNumber, year) {
-            // Pertama, cari tanggal pertama dari minggu yang diberikan
+            // Pertama, cari tanggal awal dari minggu pertama untuk bulan yang diberikan
             const janFirst = new Date(year, 0, 1);
             const janFirstDayOfWeek = janFirst.getDay();
             const daysToNextMonday = (janFirstDayOfWeek === 0 ? 1 : 8 - janFirstDayOfWeek);
             
             const firstMondayOfYear = new Date(janFirst.setDate(daysToNextMonday));
             
-            // Hitung tanggal berdasarkan minggu
+            // Hitung tanggal berdasarkan tiap minggunya
             const resultDate = new Date(firstMondayOfYear);
             resultDate.setDate(firstMondayOfYear.getDate() + (weekNumber - 1) * 7);
             
@@ -245,52 +324,28 @@
         function transformToEvents(data) {
             return data.map(function(week, index) {
                 var startDate = getDateFromWeek(index, currentYear);
-                startDate.setDate(startDate.getDate() + 1); // Tambahkan 1 hari untuk perbaikan shift
+                // Tambahkan 1 hari untuk perbaikan shift
+                startDate.setDate(startDate.getDate() + 1); 
                 
                 var endDate = new Date(startDate);
-                endDate.setDate(startDate.getDate() + 6); // Tambahkan 6 hari untuk mencapai hari Minggu
+                // Tambahkan 6 hari untuk mencapai hari Minggu
+                endDate.setDate(startDate.getDate() + 6); 
                 
-                // Shift 1 Senin- Kamis : 10:00 AM - 18:00 PM, Jum'at: 10:00 AM - 20:00 PM
+                // Shift 1 dari jam 10:00 AM - 18:00 PM
                 var shift1Start = new Date(startDate);
                 shift1Start.setHours(10, 0);
                 
-                var shift1End;
-                if (startDate.getDay() === 5) {
-                    // Jika di Hari Jumat
-                    shift1End = new Date(startDate);
-                    shift1End.setHours(20, 0);
-                } else if (startDate.getDay() >= 1 && startDate.getDay() <= 4) { // Senin-Kamis
-                    shift1End = new Date(startDate);
-                    shift1End.setHours(18, 0);
-                } else {
-                    // Untuk hari lainnya (Sabtu dan Minggu) dan bisa diatur sesuai kebutuhan
-                    shift1End = new Date(startDate);
-                    shift1End.setDate(shift1End.getDate() + 4);
-                    shift1End.setHours(10, 0);
-                }
+                var shift1End = new Date(shift1Start);
+                shift1End.setDate(shift1End.getDate() + 1);
+                shift1End.setHours(18, 0)
 
                 // Shift 2 dari Jam 14:00 PM - 22:00 PM
                 var shift2Start = new Date(startDate);
                 shift2Start.setHours(14, 0);
                 
                 var shift2End = new Date(shift2Start);
-                // Dimajukan sehari
+                shift2End.setDate(shift2End.getDate() + 1);
                 shift2End.setHours(22, 0);
-
-                // Atur shift 2 berdasarkan hari
-                if (startDate.getDay() === 5) {
-                    // Jika di hari Jum'at, shift berakhir pada hari yang sama 
-                    shift2End = new Date(shift2Start);
-                    shift2End.setHours(22, 0);
-                } else if (startDate.getDay() >= 1 && startDate.getDay() <= 5) {
-                    // Jika hari Senin sampai Kamis, shift berakhir pada hari yang sama
-                    shift2End = new Date(shift2Start);
-                    shift2End.setHours(22, 0);
-                } else {
-                    // Untuk hari lainnya (Sabtu dan Minggu), bisa diatur untuk jadwal shift 
-                    shift2End = new Date(shift2Start); 
-                    shift2End.setHours(20, 0);
-                }
 
                 // Shift 3 dari jam 12:00 PM - 20:00 PM
                 var shift3Start = new Date(startDate);
