@@ -10,9 +10,9 @@ NAMES = ["Dimas", "Dinda",
          "Retno", "Sulis", 
          "Dzaki", "Mugny", 
          "Sri Wahyuni", "Rini",
-         "Putri"]
+         "Putri", "Putra", "Reza"]
 
-MUSLIM_MEN = ["Dimas", "Dzaki", "Riza", "Mugny"]
+MUSLIM_MEN = ["Dimas", "Dzaki", "Riza", "Mugny", "Reza", "Putra"]
 DAYS_OF_WEEK = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu", "Minggu"]
 
 SHIFTS = {
@@ -45,16 +45,16 @@ NUM_SHIFTS = len(SHIFTS)
 NUM_EMPLOYEES = len(NAMES)
 
 # Inisialisasi bobot fitness dengan nilai minimum atau maksimum
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMax, strategy=list)
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+creator.create("Individual", list, fitness=creator.FitnessMin, strategy=list)
 
 ## Fungsi untuk inisialisasi individu (kromosom)
 def create_individual():
     return [[random.randint(1, NUM_SHIFTS) for _ in range(NUM_DAYS)] for _ in range(NUM_EMPLOYEES)]
 
 toolbox = base.Toolbox()
-toolbox.register("individual", tools.initIterate, creator.Individual, create_individual)
-toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+#toolbox.register("individual", tools.initIterate, creator.Individual, create_individual)
+#toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 # Fungsi aturan dalam shift pekerja 
 def is_valid(individual):
@@ -122,7 +122,8 @@ def is_valid(individual):
     # Aturan 3: Teruntuk karyawan laki-laki yang beragama Islam, tidak disarankan mengambil shift 1, 3 dan 4 pada hari Jum'at
     for i, week in enumerate(individual):
         if i == 4:
-            if week[0] in [shift1, shift3, shift4] and week[0] in MUSLIM_MEN:
+            if any(SHIFTS in [1, 3, 4] for SHIFTS in [shift1, shift3, shift4] if SHIFTS in MUSLIM_MEN):
+            #if week[0] in [shift1, shift3, shift4] and week[0] in MUSLIM_MEN:
                 return False
             
     
@@ -148,9 +149,12 @@ def backtrack(individual):
                     for shift5 in workers:
                         for shift6 in workers:
                             for off in workers:
-                                if shift1 != shift2 and shift1 != shift3 and shift2 != shift3 and shift4 != shift5 and shift6 != shift5: 
+                                # Periksa jika tiap pekerja berbeda untuk bagian shift di tiap minggunya
+                                if shift1 != shift2 and shift1 != shift3 and shift2 != shift3 and shift4 != shift5 and shift6 != shift5 and shift1 != off and shift2 != off: 
                                     new_individual = individual + [[shift1, shift2, shift3, shift4, shift5, shift6, off]]
+                                    # Periksa jika jadwal barunya valid 
                                     if is_valid(new_individual):
+                                        # Jika jadwal barunya sudah valid maka dilanjutkan dengan minggu setelahnya
                                         if backtrack(new_individual):
                                             individual[:] = new_individual
                                         return True
@@ -160,6 +164,12 @@ def backtrack(individual):
     return True
 
 def init_individual():
+    """
+    Fungsi ini digunakan untuk generate sebuah jadwal yang valid atau sesuai.
+    Dengan menggunakan fungsi backtrack untuk generate jadwal yang valid dan jika fungsi tersebut tidak dapat di generate dalam jadwal
+    yang sesuai atau valid setelah 10 kali di generate maka akan berhenti secara otomatis dan dikembalikan dalam tipe list yang kosong.
+    :return: list untuk tiap minggu, dimana tiap minggunya adalah sebuah list dari karyawan atau pekerja. 
+    """
     individual = []
     attempts = 0
 
@@ -181,38 +191,9 @@ def evaluate(individual, year=TAHUN_SEKARANG):
     :param(year) dimana jadwal tersebut dioptimalkan
     :return dengan tipe data Tuple dengan satu elemen berfungsi untuk ukuran yang tidak seimbang dalam penjadwalan
     """
-    #fitness = 0
-
-    #for emp_idx, schedule in enumerate(individual):
-    #    name = NAMES[emp_idx]
-
-    #    if schedule[-2] == 7 or schedule[-1] == 7:
-    #        fitness -= 10
-
-    #    for i in range(NUM_DAYS):
-    #        if schedule[i] == 7 and i > 0:
-    #            if schedule[i-1] != 1:
-    #                fitness -= 5
-    #            if i < NUM_DAYS-1 and schedule[i+1] != 2:
-    #                fitness -= 5
-        
-    #    if name in MUSLIM_MEN and schedule[4] in [1, 3, 4]:  # Hari Jumat (hari ke-5)
-    #        fitness -= 10
-        
-    #    if schedule[-3] not in [4, 6] or schedule[-2] not in [4, 6] or schedule[-1] not in [4, 6]
-    #        fitness -= 10
-
-    #    if schedule[-1] == 6:  # Full Shift terakhir
-    #        fitness -= 5
-        
-    #    for i in range(1, NUM_DAYS):
-    #        if schedule[i] in [1, 2] and schedule[i-1] == 6:
-    #            fitness -= 5
-
-    #return fitness,
     def calculate_variance(counts, expected):
         return sum([(count - expected) ** 2 for count in counts.values()]) / len(NAMES) / len(MUSLIM_MEN)
-    
+
     # Initialize shifts lists
     shift1, shift2, shift3, shift4, shift5, shift6, off = [], [], [], [], [], [], []
 
@@ -221,13 +202,22 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         while len(week) < 7:
             week.append(-1)  # Append a default value for missing shifts
 
-        shift1.append(week[0])
-        shift2.append(week[1])
-        shift3.append(week[2])
-        shift4.append(week[3])
-        shift5.append(week[4])
-        shift6.append(week[5])
-        off.append(week[6])
+        #shift1.append(week[0])
+        #shift2.append(week[1])
+        #shift3.append(week[2])
+        #shift4.append(week[3])
+        #shift5.append(week[4])
+        #shift6.append(week[5])
+        #off.append(week[6])
+
+        # Separate day workers by shift type
+        shift1 = [week[0] for week in individual]
+        shift2 = [week[1] for week in individual]
+        shift3 = [week[2] for week in individual]
+        shift4 = [week[3] for week in individual]
+        shift5 = [week[4] for week in individual]
+        shift6 = [week[5] for week in individual]
+        off = [week[6] for week in individual]
 
     expected_days = len(individual) / len(NAMES) / len(MUSLIM_MEN)
     year_variance = sum([
@@ -280,24 +270,19 @@ def mutate_individual(ind, year=TAHUN_SEKARANG):
     :param(year) adalah tahun yang dimana jadwal dioptimasi
     :return dengan tipe data Tuple satu elemen adalah jadwal yang diubah.
     """
-    #for emp_schedule in ind:
-        # Untuk setiap karyawan, iterasi setiap hari
-    ##    for i in range(len(emp_schedule)):
-    #        if random.random() < indpb:
-                # Ganti shift di hari tersebut dengan shift acak
-    #            emp_schedule[i] = random.randint(1, NUM_SHIFTS)
-    #return ind,
-    day_to_mutate = random.randint(0, len(ind) - 1)
+    # Random select a week to mutate
+    day_to_mutate = random.randint(0, len(ind) - 1) 
     attempts = 0 
     mutated = False
     while not mutated:
         # Correctly combine the two lists
-        new_day_schedule = random.sample(range(len(NAMES) + len(MUSLIM_MEN)), 5)  # Use + to combine lengths
+        new_day_schedule = random.sample(range(len(NAMES) + len(MUSLIM_MEN) + len(SHIFTS)), 5)  # Use + to combine lengths
         ind[day_to_mutate] = new_day_schedule  # Use assignment instead of indexing with brackets
-
+        # Cek jika jadwal baru telah sesuai atau valid
         if is_valid(ind):
             mutated = True
         attempts += 1
+        # Limit the attempts to avoid infinite loops
         if attempts > 10:
             break
 
@@ -328,7 +313,8 @@ def convert_to_names(individual, names):
     for week in individual:
         named_week = []
         for shift in week:
-            if shift >= 0 and shift < len(names):  # Check if shift is a valid index
+            # Check if shift is a valid index
+            if shift >= 0 and shift < len(names):  
                 named_week.append(names[shift])
             else:
                 named_week.append(names)
@@ -352,7 +338,7 @@ def optimized_schedule(names, year=TAHUN_SEKARANG, generations=200, population_s
     # CXPB -> CrossOver Probabilty dengan nilai minimal 70%
     # MUTPB -> Mutation Probability dengan nilai 20%
     pop = toolbox.population(n=population_size)
-    CXPB, MUTPB, NGEN = 0.7, 0.2, generations
+    CXPB, MUTPB, NGEN = 0.8, 0.2, generations
 
     fitnesses = list(map(toolbox.evaluate, pop))
     for ind, fit in zip(pop, fitnesses):
@@ -367,12 +353,10 @@ def optimized_schedule(names, year=TAHUN_SEKARANG, generations=200, population_s
         # Offspring
         for child1, child2 in zip(offspring[::2], offspring[1::2]):
             if random.random() < CXPB:
-                size = len(child1) # Mendapatkan size dari individual
-                if size <= 1:
-                    raise ValueError("Size must be greater than 1") 
-                toolbox.mate(child1, child2)
-                del child1.fitness.values
-                del child2.fitness.values
+                if len(child1) > 1 and len(child2) > 1:
+                    toolbox.mate(child1, child2)
+                    del child1.fitness.values
+                    del child2.fitness.values
         
         # Mutation
         for mutant in offspring:
@@ -395,6 +379,7 @@ def optimized_schedule(names, year=TAHUN_SEKARANG, generations=200, population_s
         pop[:] = offspring
     
     best_ind = tools.selBest(pop, 1)[0]
-    best_named_ind = convert_to_names(best_ind, NAMES)  # Pass NAMES as an argument
+    # Pass NAMES as an argument
+    best_named_ind = convert_to_names(best_ind, NAMES)  
 
     return best_named_ind

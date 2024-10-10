@@ -102,57 +102,6 @@
 
     <script>
         var currentSchedule = [];
-        var calendar;
-        var mySlots = [
-            {
-                id: 1, name: 'Pagi',
-                id: 2, name: 'Siang',
-            }
-        ];
-        var shifts = [
-            {
-                start: 'dyndatetime(y, m, d-2, 10)',
-                end: 'dyndatetime(y, m, d-2, 18)',
-                title: 'Shift 1',
-                resource: 1,
-                slot: 1
-            },
-            {
-                start: 'dyndatetime(y, m, d-2, 14)',
-                end: 'dyndatetime(y, m, d-2, 22)',
-                title: 'Shift 2',
-                resource: 1,
-                slot: 2
-            },
-            {
-                start: 'dyndatetime(y, m, d-2, 12)',
-                end: 'dyndatetime(y, m, d-2, 20)',
-                title: 'Shift 3',
-                resource: 1,
-                slot: 2
-            },
-            {
-                start: 'dyndatetime(y, m, d-2, 10)',
-                end: 'dyndatetime(y, m, d-2, 20)',
-                title: 'Shift 4',
-                resource: 1,
-                slot: 1
-            },
-            {
-                start: 'dyndatetime(y, m, d-2, 10)',
-                end: 'dyndatetime(y, m, d-2, 19)',
-                title: 'Shift 5',
-                resource: 1,
-                slot: 1
-            },
-            {
-                start: 'dyndatetime(y, m, d-2, 10)',
-                end: 'dyndatetime(y, m, d-2, 22)',
-                title: 'Shift 6',
-                resource: 1,
-                slot: 1
-            }
-        ];
 
         function listFiles() {
             $.get('/list_schedules', function(files) {
@@ -176,25 +125,30 @@
         });
         
         function optimizeCalendar() {
-            $('#optimizing').removeClass('d-none');
+            $('#optimizing').show();
             $('#btn-optimize').attr('disabled', true);
-
-            var names = [];
-            $('.worker-name').each(function() {
-                names.push($(this).val());
+            $.post('/optimize', {}, function (data) {
+                updateCalendar(data);
+                $('#optimizing').hide();
+                $('#btn-optimize').attr('disabled', false)
             });
 
-            $.ajax({
-                url: '/optimize',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ names: names }),
-                success: function(data) {
-                    updateCalendar(data);
-                    $('#optimizing').addClass('d-none');
-                    $('#btn-optimize').attr('disabled', false);
-                }
-            });
+            //var names = [];
+            //$('.worker-name').each(function() {
+            //    names.push($(this).val());
+           // });
+
+            //$.ajax({
+            //    url: '/optimize',
+            //    method: 'POST',
+            //    contentType: 'application/json',
+            //    data: JSON.stringify({ names: names }),
+            //    success: function(data) {
+            //        updateCalendar(data);
+            //        $('#optimizing').addClass('d-none');
+            //        $('#btn-optimize').attr('disabled', false);
+            //    }
+            //});
 
         }
 
@@ -335,9 +289,15 @@
                 var shift1Start = new Date(startDate);
                 shift1Start.setHours(10, 0);
                 
-                var shift1End = new Date(shift1Start);
-                shift1End.setDate(shift1End.getDate() + 1);
-                shift1End.setHours(18, 0)
+                var shift1End;
+                if (startDate.getDay() === 5) {
+                    shift1End = new Date(startDate);
+                    shift1End.setHours(18, 0);
+                } else {
+                    shift1End = new Date(startDate);
+                    shift1End.setDate(shift1End.getDate() + 2);
+                    shift1End.setHours(20, 0)
+                }
 
                 // Shift 2 dari Jam 14:00 PM - 22:00 PM
                 var shift2Start = new Date(startDate);
@@ -352,70 +312,33 @@
                 shift3Start.setHours(12, 0);
                 
                 var shift3End = new Date(shift3Start);
+                shift3End.setDate(shift3End.getDate() + 1);
                 shift3End.setHours(20, 0);
-                
-                // Atur shift 3 End berdasarkan hari
-                if (startDate.getDay() >= 0 && startDate.getDay() <= 6) { // Untuk semua hari (Senin - Minggu)
-                    // Shift 3 berlaku untuk semua hari
-                    shift3End = new Date(shift3Start);
-                    shift3End.setHours(20, 0);
-                } else {
-                    // Untuk hari lainnya, bisa diatur sesuai kebutuhan
-                    shift3End = new Date(shift3Start); // Atur sesuai kebutuhan
-                    shift3End.setHours(0, 0); 
-                }
 
                 // Shift 4 dari jam 10:00 AM - 20:00 PM 
                 var shift4Start = new Date(startDate);
                 shift4Start.setHours(10, 0);
 
                 var shift4End = new Date(shift4Start);
+                shift4End.setDate(shift4End.getDate() + 1);
                 shift4End.setHours(20, 0);
-
-                // Atur shift 4 berdasarkan hari Senin-Minggu
-                if (startDate.getDay() >= 0 && startDate.getDay() <= 6) {
-                    shift4End = new Date(shift4Start);
-                    shift4End.setHours(20, 0);
-                } else {
-                    // Untuk hari lain, bisa diatur sesuai kebutuhan
-                    shift4End = new Date(shift4Start); // Atur sesuai kebutuhan apabila jam shift diubah
-                    shift4End.setHours(0, 0);
-                }
 
                 // Shift 5 dari jam 10:00 AM - 19:00 PM
                 var shift5Start = new Date(startDate);
                 shift5Start.setHours(10, 0);
 
                 var shift5End = new Date(shift5Start);
+                shift5End.setDate(shift5End.getDate() + 1);
                 shift5End.setHours(19, 0);
 
-                // Atur jam akhir shift berdasarkan hari 
-                if (startDate.getDay() >= 0 && startDate.getDay() <= 6) { // Untuk semua hari (Senin - Minggu)
-                    shift5End = new Date(shift5Start);
-                    shift5End.setHours(19, 0);
-                } else {
-                    // Untuk hari lainnya, bisa diatur sesuai kebutuhan jam shift
-                    shift5End = new Date(shift4Start); // Atur sesuai kebutuhan jam shift 
-                    shift5End.setHours(0, 0); // Apabila tidak ada jam shift
-                }
 
                 // Shift 6 dari jam 10:00 AM - 22:00 PM
                 var shift6Start = new Date(startDate);
                 shift6Start.setHours(10, 0);
                 
                 var shift6End = new Date(shift6Start);
+                shift6End.setDate(shift6End.getDate() + 1);
                 shift6End.setHours(22, 0);
-
-                // Atur jam shift 6 berdasarkan hari 
-                if (startDate.getDay() >= 0 && startDate.getDay() <= 6) {
-                    // Shift 6 berlaku apabila dibutuhkan ketika toko ramai
-                    shift6End = new Date(shift6Start);
-                    shift6End.setHours(22, 0);
-                } else {
-                    // Untuk hari lain, bisa diatur sesuai kebutuhan
-                    shift6End = new Date(shift6Start);
-                    shift6End.setHours(0, 0); // Apabila tidak ada jam shift
-                }
 
                 // Shift 7 Libur (Off Day)
                 var offDayStart = new Date(startDate);
