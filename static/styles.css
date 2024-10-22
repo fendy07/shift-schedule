@@ -3,6 +3,10 @@
     display: none;
 }
 
+.centered-title {
+    text-align: center;
+}
+
 .optimizing {
     display: none;
     margin-top: 1rem;

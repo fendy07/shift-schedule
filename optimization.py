@@ -1,19 +1,29 @@
+import json
 import calendar
 import random
-from deap import base, creator, tools, algorithms
+import numpy as np
+from deap import base, creator, tools
 from datetime import datetime, date, timedelta
 
 # List karyawan
-NAMES = ["Dimas", "Dinda", 
-         "Hikmah", "Riza", 
-         "Estu", "Antika", 
-         "Retno", "Sulis", 
-         "Dzaki", "Mugny", 
-         "Sri Wahyuni", "Rini",
-         "Putri", "Putra", "Reza"]
+#NAMES = ["Dimas", "Dinda", 
+#         "Hikmah", "Riza", 
+#         "Estu", "Antika", 
+#         "Retno", "Sulis", 
+#         "Dzaki", "Mugny", 
+#         "Sri Wahyuni", "Rini",
+#         "Putri", "Putra", "Reza"]
 
-MUSLIM_MEN = ["Dimas", "Dzaki", "Riza", "Mugny", "Reza", "Putra"]
-DAYS_OF_WEEK = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu", "Minggu"]
+#MUSLIM_MEN = ["Dimas", "Dzaki", "Riza", "Mugny", "Reza", "Putra"]
+with open('dataset/dataset.json', 'r') as file:
+    data = json.load(file)
+
+NAMES = data['names']
+MUSLIM_MEN = data['muslim_men']
+
+DAYS_OF_WEEK = ["Senin", "Selasa", 
+                "Rabu", "Kamis", 
+                "Jum'at", "Sabtu", "Minggu"]
 
 SHIFTS = {
     1: ("10:00 AM", "18:00 PM"), # Shift 1
@@ -46,11 +56,18 @@ NUM_EMPLOYEES = len(NAMES)
 
 # Inisialisasi bobot fitness dengan nilai minimum atau maksimum
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMin, strategy=list)
+creator.create("Individual", list, fitness=creator.FitnessMin)
 
 ## Fungsi untuk inisialisasi individu (kromosom)
 def create_individual():
-    return [[random.randint(1, NUM_SHIFTS) for _ in range(NUM_DAYS)] for _ in range(NUM_EMPLOYEES)]
+    assigned_shifts = []
+    for day in range(1, NUM_DAYS + 1):
+        shift = random.randint(1, NUM_SHIFTS)
+        while shift in assigned_shifts:
+            shift = random.randint(1, NUM_SHIFTS)
+        assigned_shifts.append(shift)
+    return assigned_shifts
+    #return [[random.randint(1, NUM_SHIFTS) for _ in range(NUM_DAYS)] for _ in range(NUM_EMPLOYEES)]
 
 toolbox = base.Toolbox()
 #toolbox.register("individual", tools.initIterate, creator.Individual, create_individual)
@@ -97,11 +114,11 @@ def is_valid(individual):
                 return False
 
         # Aturan 4: Pada weekend (Jumat, Sabtu, Minggu), pekerja harus di shift 4 (shift ramai)
-        if i in [4, 5, 6] and shift4 == -1: # Indeks 4, 5, 6 menunjukan hari Jum'at, Sabtu dan Minggu
+        if i in [4, 5, 6] and shift4 == off: # Indeks 4, 5, 6 menunjukan hari Jum'at, Sabtu dan Minggu
             return False # Jika tidak ada pekerja di shift 4 pada hari ini, jadwal tidak valid
 
         # Aturan 5: Untuk menutup toko harus lebih dari 1 orang (misalnya shift 6)
-        if shift6 != -1 and shift6 == shift1:
+        if shift6 != off and shift6 == shift1:
             return False 
 
         # Aturam 6: Apabila karyawan sudah mendapatkan shift malam maka tidak diperbolehkan ambil shift pagi di hari berikutnya
@@ -157,11 +174,11 @@ def backtrack(individual):
                                         # Jika jadwal barunya sudah valid maka dilanjutkan dengan minggu setelahnya
                                         if backtrack(new_individual):
                                             individual[:] = new_individual
-                                        return True
-                                    else:
-                                        new_individual.pop()
+                                            return True
+                                        else:
+                                            new_individual.pop()
     
-    return True
+    return False
 
 def init_individual():
     """
@@ -210,14 +227,14 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         #shift6.append(week[5])
         #off.append(week[6])
 
-        # Separate day workers by shift type
-        shift1 = [week[0] for week in individual]
-        shift2 = [week[1] for week in individual]
-        shift3 = [week[2] for week in individual]
-        shift4 = [week[3] for week in individual]
-        shift5 = [week[4] for week in individual]
-        shift6 = [week[5] for week in individual]
-        off = [week[6] for week in individual]
+    # Separate day workers by shift type
+    shift1 = [week[0] for week in individual]
+    shift2 = [week[1] for week in individual]
+    shift3 = [week[2] for week in individual]
+    shift4 = [week[3] for week in individual]
+    shift5 = [week[4] for week in individual]
+    shift6 = [week[5] for week in individual]
+    off = [week[6] for week in individual]
 
     expected_days = len(individual) / len(NAMES) / len(MUSLIM_MEN)
     year_variance = sum([
@@ -276,7 +293,7 @@ def mutate_individual(ind, year=TAHUN_SEKARANG):
     mutated = False
     while not mutated:
         # Correctly combine the two lists
-        new_day_schedule = random.sample(range(len(NAMES) + len(MUSLIM_MEN) + len(SHIFTS)), 5)  # Use + to combine lengths
+        new_day_schedule = random.sample(range(len(NAMES) + len(MUSLIM_MEN)), 5)  # Use + to combine lengths
         ind[day_to_mutate] = new_day_schedule  # Use assignment instead of indexing with brackets
         # Cek jika jadwal baru telah sesuai atau valid
         if is_valid(ind):
@@ -303,7 +320,7 @@ def setup_toolbox():
     toolbox.register("select", tools.selTournament, tournsize=5)
     toolbox.register("evaluate", evaluate)
 
-def convert_to_names(individual, names):
+def convert_to_names(individual, NAMES):
     """
     Fungsi ini mengubah jadwal dari daftar indeks menjadi daftar nama.
     :param(individual) -> daftar minggu, dimana setiap minggu adalah daftar bilangan bulat yang mewakili pekerja
@@ -314,14 +331,14 @@ def convert_to_names(individual, names):
         named_week = []
         for shift in week:
             # Check if shift is a valid index
-            if shift >= 0 and shift < len(names):  
-                named_week.append(names[shift])
-            else:
-                named_week.append(names)
+            if shift >= 0 and shift < len(NAMES):  
+                named_week.append(NAMES[shift])
+            #else:
+            #    named_week.append(NAMES)
         named_schedule.append(named_week)
     return named_schedule
 
-def optimized_schedule(names, year=TAHUN_SEKARANG, generations=200, population_size=100):
+def optimized_schedule(names=NAMES, year=TAHUN_SEKARANG, generations=200, population_size=100):
     """
     Fungsi ini digunakan untuk mengoptimalkan jadwal shift dengan menggunakan algoritma genetika dalam penentuan jadwal terbaik. Algoritma ini mengembangkan populasi jadwal selama beberapa generasi dan tiap generasinya, memilih jadwal terbaik lalu menerapkan metode crossover atau persilangan dan mutasi, dan membuat populasi sampel baru. 
     :param(names) -> daftar nama pekerja
@@ -338,7 +355,17 @@ def optimized_schedule(names, year=TAHUN_SEKARANG, generations=200, population_s
     # CXPB -> CrossOver Probabilty dengan nilai minimal 70%
     # MUTPB -> Mutation Probability dengan nilai 20%
     pop = toolbox.population(n=population_size)
-    CXPB, MUTPB, NGEN = 0.8, 0.2, generations
+    CXPB, MUTPB, NGEN = 0.7, 0.2, generations
+
+    # Setting up the statistics to gather during evolution
+    stats = tools.Statistics(lambda ind:ind.fitness.values)
+    stats.register("avg", np.mean)
+    stats.register("std", np.std)
+    stats.register("min", np.min)
+    stats.register("max", np.max)
+
+    logbook = tools.Logbook()  # This will store the stats for each generation
+    logbook.header = ["gen", "nevals"] + stats.fields
 
     fitnesses = list(map(toolbox.evaluate, pop))
     for ind, fit in zip(pop, fitnesses):
@@ -346,7 +373,7 @@ def optimized_schedule(names, year=TAHUN_SEKARANG, generations=200, population_s
 
     for gen in range(NGEN):
         print(f"-- Generation {gen} --")
-
+        # Pilih untuk generasi selanjutnya dari individu
         offspring = toolbox.select(pop, len(pop))
         offspring = list(map(toolbox.clone, offspring))
 
@@ -377,9 +404,15 @@ def optimized_schedule(names, year=TAHUN_SEKARANG, generations=200, population_s
 
         # Update dari metode populasi
         pop[:] = offspring
+
+        # Mengumpulkan secara keseluruhan dari perhitungan statistik tiap fitness untuk generasi 
+        record = stats.compile(pop)
+        logbook.record(gen=gen, nevals=len(invalid_ind), **record)
+        print(logbook.stream)
     
     best_ind = tools.selBest(pop, 1)[0]
     # Pass NAMES as an argument
-    best_named_ind = convert_to_names(best_ind, NAMES)  
+    best_named_ind = convert_to_names(best_ind, NAMES)
+    print(best_named_ind)  
 
     return best_named_ind

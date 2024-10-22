@@ -78,6 +78,18 @@ def list_schedules():
     files.sort(reverse=True)  # Urutkan file dari yang terbaru ke yang paling lama
     return jsonify(files)
 
+@app.route('/update_event_date', methods=['POST'])
+def update_event_date():
+    try:
+        data = request.json
+        event_id = data.get('eventId')
+        new_date = data.get('newDate')
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        return jsonify(success=False, message=str(e)), 500
+    
 
 @app.route('/optimize', methods=['POST'])
 def optimize():
