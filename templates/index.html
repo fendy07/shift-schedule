@@ -199,7 +199,7 @@
                 icon: swalType,
                 title: message,
                 showConfirmButton: false,
-                timer: 5000 // Notifikasi akan hilang setelah 5 detik
+                timer: 2000 // Notifikasi akan hilang setelah 5 detik
             });
         }
 
@@ -352,7 +352,7 @@
             return bestIndividual;
         }
 
-
+        // Optimize
         function optimize() {
             let populationSize = 100;
             let generations = 200;
@@ -479,7 +479,6 @@
 
                 // Shift 4 dari jam 10:00 AM - 20:00 PM 
                 var shift4Start = new Date(startDate);
-                //shift4Start.setDate(shift4Start.getDate() + 4);
                 shift4Start.setHours(10, 0);
 
                 var shift4End = new Date(shift4Start);

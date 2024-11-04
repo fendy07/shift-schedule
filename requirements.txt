@@ -25,7 +25,8 @@ numpy==1.26.0
 werkzeug==3.0.0
     # via flask
 pandas==2.2.3
-numpy
+numpy==1.26.0
+seaborn==0.13.2
 matplotlib==3.9.2
 scikit-learn==1.5.2
 sklearn-genetic-opt==0.11.1

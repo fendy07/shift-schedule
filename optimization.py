@@ -5,22 +5,13 @@ import numpy as np
 from deap import base, creator, tools
 from datetime import datetime, date, timedelta
 
-# List karyawan
-#NAMES = ["Dimas", "Dinda", 
-#         "Hikmah", "Riza", 
-#         "Estu", "Antika", 
-#         "Retno", "Sulis", 
-#         "Dzaki", "Mugny", 
-#         "Sri Wahyuni", "Rini",
-#         "Putri", "Putra", "Reza"]
-
-#MUSLIM_MEN = ["Dimas", "Dzaki", "Riza", "Mugny", "Reza", "Putra"]
+# Load Dataset
 with open('dataset/dataset.json', 'r') as file:
     data = json.load(file)
 
 NAMES = data['names']
 MUSLIM_MEN = data['muslim_men']
-
+# Day names of week
 DAYS_OF_WEEK = ["Senin", "Selasa", 
                 "Rabu", "Kamis", 
                 "Jum'at", "Sabtu", "Minggu"]
@@ -303,7 +294,7 @@ def mutate_individual(ind, year=TAHUN_SEKARANG):
         if attempts > 10:
             break
 
-    return ind,
+    return ind, 
 
 def setup_toolbox():
     """
@@ -333,8 +324,8 @@ def convert_to_names(individual, NAMES):
             # Check if shift is a valid index
             if shift >= 0 and shift < len(NAMES):  
                 named_week.append(NAMES[shift])
-            #else:
-            #    named_week.append(NAMES)
+            else:
+                named_week.append(NAMES)
         named_schedule.append(named_week)
     return named_schedule
 
@@ -355,7 +346,7 @@ def optimized_schedule(names=NAMES, year=TAHUN_SEKARANG, generations=200, popula
     # CXPB -> CrossOver Probabilty dengan nilai minimal 70%
     # MUTPB -> Mutation Probability dengan nilai 20%
     pop = toolbox.population(n=population_size)
-    CXPB, MUTPB, NGEN = 0.7, 0.2, generations
+    CXPB, MUTPB, NGEN = 0.8, 0.2, generations
 
     # Setting up the statistics to gather during evolution
     stats = tools.Statistics(lambda ind:ind.fitness.values)
@@ -402,7 +393,7 @@ def optimized_schedule(names=NAMES, year=TAHUN_SEKARANG, generations=200, popula
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
 
-        # Update dari metode populasi
+        # Update dari metode populasi 
         pop[:] = offspring
 
         # Mengumpulkan secara keseluruhan dari perhitungan statistik tiap fitness untuk generasi 
@@ -411,6 +402,8 @@ def optimized_schedule(names=NAMES, year=TAHUN_SEKARANG, generations=200, popula
         print(logbook.stream)
     
     best_ind = tools.selBest(pop, 1)[0]
+    print(best_ind)
+
     # Pass NAMES as an argument
     best_named_ind = convert_to_names(best_ind, NAMES)
     print(best_named_ind)  
