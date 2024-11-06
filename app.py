@@ -17,6 +17,8 @@ def file_content_hash(filepath):
     """Mengembalikan hash berdasarkan isi file."""
     with open(filepath, 'r') as f:
         file_content = f.read()
+        if not file_content.strip():
+            return None
         parsed_content = json.loads(file_content)
         return hashlib.md5(json.dumps(parsed_content, sort_keys=True).encode()).hexdigest()
 
@@ -40,7 +42,8 @@ def save_schedule():
     # Periksa apakah jadwal sudah ada di direktori?
     for filename in os.listdir(SAVE_PATH):
         filepath = os.path.join(SAVE_PATH, filename)
-        if file_content_hash(filepath) == current_schedule_hash:
+        file_hash = file_content_hash(filepath)
+        if file_hash and file_hash == current_schedule_hash:
             return jsonify(success=False, message="Jadwal sudah ada!")
 
     # Jika tidak ada yang cocok, simpan file
@@ -77,6 +80,24 @@ def list_schedules():
     files = os.listdir(SAVE_PATH)
     files.sort(reverse=True)  # Urutkan file dari yang terbaru ke yang paling lama
     return jsonify(files)
+
+# Delete file schedule when was not valid
+@app.route('/delete_schedule', methods=['DELETE'])
+def delete_schedule():
+    try:
+        data = request.json
+        filename = data.get('filename')
+        filepath = os.path.join(SAVE_PATH, filename)
+
+        # Periksa jika file sudah ada
+        if os.path.exists(filepath):
+            os.remove(filepath)
+            return jsonify({'success': True, 'message': 'Program Berhasil Dihapus!'})
+        else:
+            return jsonify({'success': False, 'message': 'File Tidak Ditemukan!'}), 404
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/update_event_date', methods=['POST'])
 def update_event_date():

@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
@@ -78,6 +80,8 @@
                 <button class="btn btn-secondary" onclick="listFiles()" title="Muat Ulang" aria-label="Refresh files">
                     <i class="fas fa-sync-alt"></i>
                 </button>
+                <!--New delete button-->
+                <button type="button" class="btn btn-danger" onclick="deleteSchedule()">Delete</button>
             </div>
         </div>
 
@@ -93,6 +97,7 @@
             <span class="badge badge-off off">Libur (Off Day)</span>
         </div>
         <div id='calendar'></div>
+        <button type="button" class="btn btn-secondary" onclick="takeScreenshot()">Take Screenshot</button>
         <hr/>
         <!-- Metrics Display -->
         <div id="metrics"></div>
@@ -118,7 +123,12 @@
             var calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
+                headerToolbar: {
+                    center: 'prev,next today',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
                 editable: true,
+                dayMaxEvents: true,
                 eventDrop: function(info) {
                     handleEventDrop(info);
                 }
@@ -157,11 +167,6 @@
         function optimizeCalendar() {
             $('#optimizing').show();
             $('#btn-optimize').attr('disabled', true);
-            //$.post('/optimize', {}, function (data) {
-            //    updateCalendar(data);
-            //    $('#optimizing').hide();
-            //    $('#btn-optimize').attr('disabled', false)
-            //});
 
             var names = [];
             $('.worker-name').each(function() {
@@ -243,6 +248,34 @@
                     showNotification(data.success ? 'success' : 'danger', data.message);
                 }
             });
+        }
+
+        function deleteSchedule() {
+            var selectedFile = $('#file-list').val();
+            if (!selectedFile) {
+                showNotification('warning', 'Silahkan Pilih File Schedule Terlebih Dahulu!');
+                return;
+            }
+
+            $.ajax({
+                url: '/delete_schedule',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ filename: selectedFile }),
+                success: function(response) {
+                    if (response.success) {
+                        showNotification('success', 'File Schedule Berhasil Dihapus!');
+                        listFiles(); // Refresh file list
+                    } else {
+                        showNotification('error', response.message || 'Gagal Menghapus File Schedule.');
+                    }
+                },
+
+                error: function() {
+                    showNotification('error', 'Terjadi Kesalahan Saat Menghapus!');
+                }
+            });
+
         }
 
         function addNameField() {
@@ -410,38 +443,6 @@
                 var startDate = getDateFromWeek(index, currentYear);
                 // Tambahkan 1 hari untuk perbaikan shift
                 startDate.setDate(startDate.getDate() + 1); 
-                
-                //var endDate = new Date(startDate);
-                //endDate.setDate(startDate.getDate() + 6);
-
-                // Randomize days for shifts 
-                //const days = [0, 1, 2, 3, 4, 5, 6]; 
-                //shuffleArray(days);
-
-                //function shuffleArray(array) {
-                //    for (let i = array.length - 1; i > 0; i--) {
-                //        const j = Math.floor(Math.random() * (i + 1));
-                //        [array[i], array[j]] = [array[j], array[i]];
-                //    }
-                //}
-
-                // create event for each shift
-                //return week.map((name, shift) => {
-                //    const dayOffset = days[shift];
-                //    const shiftStart = new Date(startDate);
-                //    shiftStart.setDate(shiftStart.getDate() + dayOffset);
-
-                //    const shiftEnd = new Date(shiftStart);
-                //    shiftEnd.setHours(shiftStart.getHours() + 8);
-
-                //    return {
-                //        title: `Shift ${shift + 1}: ${name}`,
-                //        start: shiftStart,
-                //        end: shiftEnd,
-                //        color: getColorForShift(shift)
-                //    };
-                //});
-            //}).flat();
 
                 var endDate = new Date(startDate);
                 // Tambahkan 6 hari untuk mencapai hari Minggu
@@ -451,15 +452,9 @@
                 var shift1Start = new Date(startDate);
                 shift1Start.setHours(10, 0);
                 
-                var shift1End;
-                if (startDate.getDay() === 5) {
-                    shift1End = new Date(startDate);
-                    shift1End.setHours(18, 0);
-                } else {
-                    shift1End = new Date(startDate);
-                    shift1End.setDate(shift1End.getDate() + 1);
-                    shift1End.setHours(20, 0)
-                }
+                var shift1End = new Date(startDate);
+                shift1End.setDate(shift1End.getDate() + 1);
+                shift1End.setHours(18, 0)
 
                 // Shift 2 dari Jam 14:00 PM - 22:00 PM
                 var shift2Start = new Date(startDate);
@@ -498,15 +493,15 @@
                 shift6Start.setHours(10, 0);
                 
                 var shift6End = new Date(shift6Start);
-                shift6End.setDate(shift6End.getDate() + 1);
+                //shift6End.setDate(shift6End.getDate() + 1);
                 shift6End.setHours(22, 0);
 
                 // Shift 7 Libur (Off Day)
                 var offDayStart = new Date(startDate);
-                //offDayStart.setHours(0, 0);
+                offDayStart.setHours(0, 0);
 
                 var offDayEnd = new Date(offDayStart);  
-                //offDayEnd.setHours(23, 59);
+                offDayEnd.setHours(23, 59);
 
                 // Menentukan off day berdasarkan hari weekday
                 if (startDate.getDay() >= 1 && startDate.getDay() <= 4) { // Senin - Kamis
@@ -531,11 +526,15 @@
             }).flat();
         }
 
-        // Function to get color for each shift
-        //function getColorForShift(shift) {
-        //    const colors = ['#FF8C00', '#FCD703', '#338A11', '#5050DB', '#0E1EC9', '#910CC2', '#FF0000'];
-        //    return colors[shift];
-        //}
+        function takeScreenshot() {
+            const calendarElement = document.getElementById('calendar');
+            html2canvas(calendarElement).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'calendar-screenshot.png';
+                link.click();
+            });
+        }
 
         function generateMetrics(data) {
             const counts = {};
@@ -563,14 +562,6 @@
                 counts[week[6]].offDay += 1;
             });
 
-            //data.forEach(function(week) {
-            //    week.forEach((name, shift) => {
-            //        if (!counts[name]) {
-            //            counts[name] = { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0 };
-            //        }
-            //        counts[name][`shift${shift + 1}`] += 1;
-            //    });
-            //});
 
             let tableHTML = '<h4>Metriks Tahunan</h4>';
             tableHTML += '<table class="table table-striped table-bordered">'; 
@@ -603,13 +594,6 @@
                 if (!counts[month]) {
                     counts[month] = {};
                 }
-
-                //week.forEach((name, shift) => {
-                //    if (!counts[month][name]) {
-                //        counts[month][name] = { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0 };
-                //    }
-                //    counts[month][name][`shift${shift + 1}`]++;
-                //});
 
                 ["shift1", "shift2", "shift3", "shift4", "shift5", "shift6", "offDay"].forEach((shiftType, index) => {
                     const name = week[index];

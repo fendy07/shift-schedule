@@ -52,17 +52,16 @@ creator.create("Individual", list, fitness=creator.FitnessMin)
 ## Fungsi untuk inisialisasi individu (kromosom)
 def create_individual():
     assigned_shifts = []
-    for day in range(1, NUM_DAYS + 1):
+    for _ in range(1, NUM_DAYS + 1):
         shift = random.randint(1, NUM_SHIFTS)
-        while shift in assigned_shifts:
-            shift = random.randint(1, NUM_SHIFTS)
         assigned_shifts.append(shift)
     return assigned_shifts
     #return [[random.randint(1, NUM_SHIFTS) for _ in range(NUM_DAYS)] for _ in range(NUM_EMPLOYEES)]
 
 toolbox = base.Toolbox()
-#toolbox.register("individual", tools.initIterate, creator.Individual, create_individual)
-#toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+toolbox.register("attr_shift", lambda: random.choice(range(1, 7)))
+toolbox.register("individual", tools.initIterate, creator.Individual, create_individual, toolbox.attr_shift)
+toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 # Fungsi aturan dalam shift pekerja 
 def is_valid(individual):
@@ -134,7 +133,6 @@ def is_valid(individual):
             #if week[0] in [shift1, shift3, shift4] and week[0] in MUSLIM_MEN:
                 return False
             
-    
     return True
 
 
@@ -325,7 +323,7 @@ def convert_to_names(individual, NAMES):
             if shift >= 0 and shift < len(NAMES):  
                 named_week.append(NAMES[shift])
             else:
-                named_week.append(NAMES)
+                named_week.append("Invalid")
         named_schedule.append(named_week)
     return named_schedule
 

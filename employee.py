@@ -136,3 +136,38 @@ class EmployeeSchedulingProblem:
 
         print('Consecutive Shift Violations = ', self.countConsecutiveShiftViolations(employeeShiftDict))
         print()
+
+        weeklyShiftList, violations = self.countShiftsPerWeekViolations(employeeShiftDict)
+        print("Weekly Shifts = ", weeklyShiftList)
+        print("Shift Per Week Violations = ", violations)
+        print()
+
+        totalPerShiftList, violations = self.countEmployeesPerShiftViolations(employeeShiftDict)
+        print("Employee Per Shift = ", totalPerShiftList)
+        print("Employees Per Shift Violations = ", violations)
+        print()
+
+        shiftPreferenceViolations = self.countShiftPreferenceViolations(employeeShiftDict)
+        print("Shift Preference Violations = ", shiftPreferenceViolations)
+        print()
+
+
+# Testing for the class 
+def main():
+    # Membuat sebuah problem instance
+    employee = EmployeeSchedulingProblem(20)
+
+
+    randomSolution = np.random.randint(3, size = len(employee))
+    print("Random Solution = ")
+    print(randomSolution)
+    print()
+    
+    employee.printScheduleInfo(randomSolution)
+
+
+    print("Total Cost = ", employee.getCost(randomSolution))
+
+
+if __name__ == "__main__":
+    main()

@@ -50,6 +50,16 @@ toolbox.register("select", tools.selTournament, tournsize=3)
 toolbox.register("mate", tools.cxTwoPoint)
 toolbox.register("mutate", tools.mutFlipBit, indpb = 1.0/len(employee))
 
+def convertToSchedule(individual):
+    schedule = []
+    for i, bit in enumerate(individual):
+        day = i // 3
+        shift = i % 3
+        if bit == 1:
+            schedule.append(f"Day {day + 1}, Shift {shift + 1}")
+    return schedule
+
+
 # Genetic Algorithm flow:
 def main():
     # Membuat inisial populasi (dari generate awal)
@@ -79,6 +89,12 @@ def main():
     # Ekstrak kalkulasi dari metode statistik
     minFitnessValues, meanFitnessValues, maxFitnessValues = logbook.select("min", "avg", "max")
 
+    # Convert the best individual to a readable schedule
+    schedule = convertToSchedule(best)
+    print("-- Converted Schedule = ")
+    for entry in schedule:
+        print(entry)
+    
     # Plot Statistik
     sns.set_style("whitegrid")
     plt.plot(minFitnessValues, color = 'red')
