@@ -438,6 +438,14 @@
             return resultDate;
         }
 
+        //function isShift6Active() {
+            // Shift 6 untuk opsional
+        //    var shift6Start = new Date(startDate);
+        //    shift6Start.setHours(10, 0);
+
+        //    if (shift6Start)
+        //}
+
         function transformToEvents(data) {
             return data.map(function(week, index) {
                 var startDate = getDateFromWeek(index, currentYear);
@@ -493,7 +501,16 @@
                 shift6Start.setHours(10, 0);
                 
                 var shift6End = new Date(shift6Start);
-                //shift6End.setDate(shift6End.getDate() + 1);
+                shift6End.setHours(22, 0);
+                // Menentukan shift 6 hanya sebuah opsional apabila ada waktu lembur dalam hari libur atau perayaan
+                if (startDate.getDay() >= 1 && startDate.getDay() <= 7) {
+                    shift6Start.setDate(shift6Start.getDate());
+                    shift6End.setDate(shift6End.getDate());
+                } else {
+                    shift6Start.setDate(shift6Start.getDate() - 1);
+                    shift6End.setDate(shift6End.getDate());
+                }
+                shift6Start.setHours(10, 0);
                 shift6End.setHours(22, 0);
 
                 // Shift 7 Libur (Off Day)
@@ -525,7 +542,7 @@
                 ];
             }).flat();
         }
-
+        // Screenshot for calendar event shift when get result
         function takeScreenshot() {
             const calendarElement = document.getElementById('calendar');
             html2canvas(calendarElement).then(canvas => {
