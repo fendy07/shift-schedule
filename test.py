@@ -53,8 +53,8 @@ NUM_SHIFTS = len(SHIFTS)
 NUM_EMPLOYEES = len(NAMES)  # Jumlah karyawan disesuaikan dengan panjang NAMES
 
 # Membuat kelas Fitness
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMax)
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+creator.create("Individual", list, fitness=creator.FitnessMin)
 
 # Fungsi untuk inisialisasi individu (kromosom)
 def create_individual():

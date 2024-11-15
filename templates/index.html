@@ -10,9 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
@@ -125,7 +125,7 @@
                 initialView: 'dayGridMonth',
                 headerToolbar: {
                     center: 'prev,next today',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,list'
                 },
                 editable: true,
                 dayMaxEvents: true,
@@ -133,6 +133,7 @@
                     handleEventDrop(info);
                 }
             });
+
             calendar.render();
             listFiles();
         });
@@ -437,14 +438,23 @@
             
             return resultDate;
         }
+        // Overlapping for shifts schedule when generated
+        function shiftsOverlap(shift1, shift2, shift3, shift4, shift5, shift6) {
+            return (shift1.start < shift2.end && shift1.end > shift2.start) ||
+                   (shift2.start < shift1.end && shift2.end > shift1.start) || 
+                   (shift3.start < shift4.end && shift3.end > shift4.start) ||
+                   (shift5.start < shift6.end && shift5.end > shift6.start); 
+        }
 
-        //function isShift6Active() {
-            // Shift 6 untuk opsional
-        //    var shift6Start = new Date(startDate);
-        //    shift6Start.setHours(10, 0);
-
-        //    if (shift6Start)
-        //}
+        function adjustOverlappingShifts(shift) {
+            shift.sort((shift1, shift2, shift3, shift4, shift5, shift6) => shift1.start - shift2.start - shift3.start - shift4.start - shift5.start - shift6.start);
+            for (let i = 0; i < shift.length - 1; i++) {
+                if (shiftsOverlap(shift[i], shift[i + 1])) {
+                    // adjust waktu terakhir untuk shift sekarang yang diberikan dalam memulai waktu
+                    shift[i].end = new Date(Math.min(shift[i].end, shift[i + 1].start));
+                }
+            }
+        }
 
         function transformToEvents(data) {
             return data.map(function(week, index) {
@@ -485,7 +495,7 @@
                 shift4Start.setHours(10, 0);
 
                 var shift4End = new Date(shift4Start);
-                shift4End.setDate(shift4End.getDate() + 1);
+                shift4End.setDate(shift4End.getDate() + 2);
                 shift4End.setHours(20, 0);
 
                 // Shift 5 dari jam 10:00 AM - 19:00 PM
@@ -536,12 +546,18 @@
                     { title: 'Shift 2: ' + week[1], start: shift2Start, end: shift2End, color: '#FCD703' }, 
                     { title: 'Shift 3: ' + week[2], start: shift3Start, end: shift3End, color: '#338A11' },
                     { title: 'Shift 4: ' + week[3], start: shift4Start, end: shift4End, color: '#5050DB' },
-                    { title: 'Shift 5: ' + week[4], start: shift5Start, end: shift5End, color: '#0E1EC9'},
-                    { title: 'Shift 6: ' + week[5], start: shift6Start, end: shift6End, color: '#910CC2'},
-                    { title: 'Libur: ' + week[6], start: offDayStart, end: offDayEnd, color: '#FF0000'}
+                    { title: 'Shift 5: ' + week[4], start: shift5Start, end: shift5End, color: '#0E1EC9' },
+                    { title: 'Shift 6: ' + week[5], start: shift6Start, end: shift6End, color: '#910CC2' },
+                    { title: 'Libur: ' + week[6], start: offDayStart, end: offDayEnd, color: '#FF0000' }
                 ];
             }).flat();
+
+            // adjust overlapping shifts
+            adjustOverlappingShifts(shift);
+
+            return shift;
         }
+
         // Screenshot for calendar event shift when get result
         function takeScreenshot() {
             const calendarElement = document.getElementById('calendar');

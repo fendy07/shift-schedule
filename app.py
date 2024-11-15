@@ -106,31 +106,33 @@ def update_event_date():
         event_id = data.get('eventId')
         new_date = data.get('newDate')
 
+        return jsonify(success=True)
+
         # Load the existing schedule
-        filename = "schedule_" + datetime.now().strftime('%Y_%m_%d_%H_%M_%S') + ".json"
-        filepath = os.path.join(SAVE_PATH, filename)
-        if not os.path.exists(filepath):
-            return jsonify({'Success': False, 'message': 'Schedule file not found!'}), 404
+        #filename = "schedule_" + datetime.now().strftime('%Y_%m_%d_%H_%M_%S') + ".json"0003200000000000002
+        #filepath = os.path.join(SAVE_PATH, filename)
+        #if not os.path.exists(filepath):
+        #    return jsonify({'Success': False, 'message': 'Schedule file not found!'}), 404
         
-        with open(filepath, 'r') as file:
-            schedule = json.load(file)
+        #with open(filepath, 'r') as file:
+        #    schedule = json.load(file)
 
         # Update the event date
-        event_found = False
-        for event in schedule['events']:
-            if event['id'] == event_id:
-                event['date'] = new_date
-                event_found = True
-                break
+        #event_found = False
+        #for event in schedule['events']:
+        #    if event['id'] == event_id:
+        #        event['date'] = new_date
+        #        event_found = True
+        #        break
         
-        if not event_found:
-            return jsonify({'success': False, 'message': 'Event not found!'}), 404
+        #if not event_found:
+        #    return jsonify({'success': False, 'message': 'Event not found!'}), 404
         
         # Simpan untuk jadwal yang diupdate
-        with open(filepath, 'w') as file:
-            json.dump(schedule, file, indent=4)
+        #with open(filepath, 'w') as file:
+        #    json.dump(schedule, file, indent=4)
 
-        return jsonify({'success': True, 'message': 'Event date updated successfully!'})
+        #return jsonify({'success': True, 'message': 'Event date updated successfully!'})
 
     except Exception as e:
         return jsonify(success=False, message=str(e)), 500
@@ -140,7 +142,7 @@ def update_event_date():
 def optimize():
     data = request.json
     names = data['names']
-    muslim = data.get('muslims')
+    muslim = data.get('muslim_men')
 
     optimize_schedule = optimized_schedule(names, muslim, generations=200)
     return jsonify(optimize_schedule)

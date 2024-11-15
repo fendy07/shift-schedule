@@ -12,9 +12,7 @@ with open('dataset/dataset.json', 'r') as file:
 NAMES = data['names']
 MUSLIM_MEN = data['muslim_men']
 # Day names of week
-DAYS_OF_WEEK = ["Senin", "Selasa", 
-                "Rabu", "Kamis", 
-                "Jum'at", "Sabtu", "Minggu"]
+DAYS_OF_WEEK = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu", "Minggu"]
 
 SPECIAL_DAYS = [
     # format: (bulan, hari)
@@ -62,17 +60,22 @@ def create_individual():
         shift = random.randint(1, NUM_SHIFTS)
         assigned_shifts.append(shift)
     return assigned_shifts
-    #return [[random.randint(1, NUM_SHIFTS) for _ in range(NUM_DAYS)] for _ in range(NUM_EMPLOYEES)]
 
 toolbox = base.Toolbox()
-toolbox.register("attr_shift", lambda: random.choice(range(1, 6)))
-toolbox.register("individual", tools.initIterate, creator.Individual, create_individual, toolbox.attr_shift)
+toolbox.register("individual", tools.initIterate, creator.Individual, create_individual)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 # hari perayaan
 def is_special_day(date):
     """Periksa apakah di tanggal tertentu adalah hari perayaan atau event khusus."""
     return (date.month, date.day) in SPECIAL_DAYS
+
+# Overlapping untuk jadwal shift yang diberikan
+def get_shift_time(shift):
+    start_time, end_time = SHIFTS[shift]
+    start = datetime.strptime(start_time, "%H:%M")
+    end = datetime.strptime(end_time, "%H:%M")
+    return start, end
 
 # Fungsi aturan dalam shift pekerja 
 def is_valid(individual):
@@ -146,7 +149,6 @@ def is_valid(individual):
     for i, week in enumerate(individual):
         if i == 4:
             if any(SHIFTS in [1, 3, 4] for SHIFTS in [shift1, shift3, shift4] if SHIFTS in MUSLIM_MEN):
-            #if week[0] in [shift1, shift3, shift4] and week[0] in MUSLIM_MEN:
                 return False
             
     return True
@@ -172,7 +174,7 @@ def backtrack(individual):
                         for shift6 in workers:
                             for off in workers:
                                 # Periksa jika tiap pekerja berbeda untuk bagian shift di tiap minggunya
-                                if shift1 != shift2 and shift1 != shift3 and shift2 != shift3 and shift4 != shift5 and shift6 != shift5: 
+                                if shift1 != shift2 and shift1 != shift3 and shift2 != shift3 and shift4 != shift5 and shift6 != off: 
                                     new_individual = individual + [[shift1, shift2, shift3, shift4, shift5, shift6, off]]
                                     # Periksa jika jadwal barunya valid 
                                     if is_valid(new_individual):
@@ -224,14 +226,6 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         while len(week) < 7:
             week.append(-1)  # Append a default value for missing shifts
 
-        #shift1.append(week[0])
-        #shift2.append(week[1])
-        #shift3.append(week[2])
-        #shift4.append(week[3])
-        #shift5.append(week[4])
-        #shift6.append(week[5])
-        #off.append(week[6])
-
     # Separate day workers by shift type
     shift1 = [week[0] for week in individual]
     shift2 = [week[1] for week in individual]
@@ -242,7 +236,6 @@ def evaluate(individual, year=TAHUN_SEKARANG):
     off = [week[6] for week in individual]
 
     expected_days = len(individual) / len(NAMES)
-    print("Test", individual)
     year_variance = sum([
         calculate_variance({i: shift1.count(i) for i in set(shift1)}, expected_days),
         calculate_variance({i: shift2.count(i) for i in set(shift2)}, expected_days),
@@ -252,7 +245,7 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         calculate_variance({i: shift6.count(i) for i in set(shift6)}, expected_days),
         calculate_variance({i: off.count(i) for i in set(off)}, expected_days)
     ])
-
+    
     # Hitung varians dalam setiap bulan
     month_variances = []
     for month in range(1, 13):
@@ -299,7 +292,7 @@ def mutate_individual(ind, year=TAHUN_SEKARANG):
     mutated = False
     while not mutated:
         # Correctly combine the two lists
-        new_day_schedule = random.sample(range(len(NAMES)), 5)  # Use + to combine lengths
+        new_day_schedule = random.sample(range(len(NAMES)), 3)  # Use + to combine lengths
         ind[day_to_mutate] = new_day_schedule  # Use assignment instead of indexing with brackets
         # Cek jika jadwal baru telah sesuai atau valid
         if is_valid(ind):
@@ -338,9 +331,7 @@ def convert_to_names(individual, NAMES):
         for shift in week:
             try:
             # Check if shift is a valid index
-            #if shift >= 0 and shift < len(NAMES):  
                 named_week.append(NAMES[shift])
-            #else:
             except IndexError:
                 named_week.append("Invalid")
         named_schedule.append(named_week)
@@ -363,7 +354,7 @@ def optimized_schedule(names=NAMES, year=TAHUN_SEKARANG, generations=200, popula
     # CXPB -> CrossOver Probabilty dengan nilai minimal 70%
     # MUTPB -> Mutation Probability dengan nilai 20%
     pop = toolbox.population(n=population_size)
-    CXPB, MUTPB, NGEN = 0.8, 0.2, generations
+    CXPB, MUTPB, NGEN = 0.7, 0.2, generations
 
     # Setting up the statistics to gather during evolution
     stats = tools.Statistics(lambda ind:ind.fitness.values)
