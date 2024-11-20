@@ -265,7 +265,6 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         month_shift3 = shift3[first_week-1:last_week]
         month_shift4 = shift4[first_week-1:last_week]
         month_shift5 = shift5[first_week-1:last_week]
-        #month_shift6 = shift6[first_week-1:last_week]
         month_off = off[first_week-1:last_week]
 
         weeks_in_month = last_week - first_week + 1
@@ -277,7 +276,6 @@ def evaluate(individual, year=TAHUN_SEKARANG):
             calculate_variance({i: month_shift3.count(i) for i in set(month_shift3)}, expected_days_in_month),
             calculate_variance({i: month_shift4.count(i) for i in set(month_shift4)}, expected_days_in_month),
             calculate_variance({i: month_shift5.count(i) for i in set(month_shift5)}, expected_days_in_month),
-            #calculate_variance({i: month_shift6.count(i) for i in set(month_shift6)}, expected_days_in_month),
             calculate_variance({i: month_off.count(i) for i in set(month_off)}, expected_days_in_month)
         ]))
 

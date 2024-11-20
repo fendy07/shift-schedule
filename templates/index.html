@@ -506,24 +506,7 @@
                 shift5End.setDate(shift5End.getDate() + 1);
                 shift5End.setHours(19, 0);
 
-                // Shift 6 dari jam 10:00 AM - 22:00 PM
-                //var shift6Start = new Date(startDate);
-                //shift6Start.setHours(10, 0);
-                
-                //var shift6End = new Date(shift6Start);
-                //shift6End.setHours(22, 0);
-                // Menentukan shift 6 hanya sebuah opsional apabila ada waktu lembur dalam hari libur atau perayaan
-                //if (startDate.getDay() >= 1 && startDate.getDay() <= 7) {
-                //    shift6Start.setDate(shift6Start.getDate());
-                //    shift6End.setDate(shift6End.getDate());
-                //} else {
-                //    shift6Start.setDate(shift6Start.getDate() - 1);
-                //    shift6End.setDate(shift6End.getDate());
-                //}
-                //shift6Start.setHours(10, 0);
-                //shift6End.setHours(22, 0);
-
-                // Shift 7 Libur (Off Day)
+                // Shift 6 Libur (Off Day)
                 var offDayStart = new Date(startDate);
                 offDayStart.setHours(0, 0);
 
@@ -547,7 +530,6 @@
                     { title: 'Shift 3: ' + week[2], start: shift3Start, end: shift3End, color: '#338A11' },
                     { title: 'Shift 4: ' + week[3], start: shift4Start, end: shift4End, color: '#5050DB' },
                     { title: 'Shift 5: ' + week[4], start: shift5Start, end: shift5End, color: '#0E1EC9' },
-                    //{ title: 'Shift 6: ' + week[5], start: shift6Start, end: shift6End, color: '#910CC2' },
                     { title: 'Libur: ' + week[5], start: offDayStart, end: offDayEnd, color: '#FF0000' }
                 ];
             }).flat();
@@ -587,9 +569,6 @@
 
                 counts[week[4]] = counts[week[4]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, offDay: 0};
                 counts[week[4]].shift5 += 1;
-
-                //counts[week[5]] = counts[week[5]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0};
-                //counts[week[5]].shift6 += 1;
 
                 counts[week[5]] = counts[week[5]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, offDay: 0};
                 counts[week[5]].offDay += 1;
