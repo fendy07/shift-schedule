@@ -26,7 +26,6 @@ SHIFTS = {
     3: ("12:00 PM", "20:00 PM"), # Shift 3
     4: ("10:00 AM", "20:00 PM"), # Shift 4
     5: ("10:00 AM", "19:00 PM"), # Shift 5
-    6: ("10:00 AM", "22:00 PM"), # FULL SHIFT
     7: ("OFF", "OFF DAY") # LIBUR
 }
 
@@ -59,7 +58,11 @@ def create_individual():
     for _ in range(1, NUM_DAYS + 1):
         shift = random.randint(1, NUM_SHIFTS)
         assigned_shifts.append(shift)
-    return assigned_shifts
+    unique_shifts = list(set(assigned_shifts))
+    # Memastikan ada 6 shift yang unik
+    while len(unique_shifts) < 6: 
+        unique_shifts.append(random.randint(1, NUM_SHIFTS))
+    return unique_shifts
 
 toolbox = base.Toolbox()
 toolbox.register("individual", tools.initIterate, creator.Individual, create_individual)
@@ -96,54 +99,59 @@ def is_valid(individual):
         return False
 
     for i, week in enumerate(individual[:-1]):
-        # Ensure week has 7 elements
-        while len(week) < 7:
+        # Ensure week has 6 elements
+        while len(week) < 6:
             week.append(-1)  # Append a default value for off day if missing
         # Unpack the week into shifts and off day
-        shift1, shift2, shift3, shift4, shift5, shift6, off = week
+        shift1, shift2, shift3, shift4, shift5, off = week
+
+        # Aturan tambahan: Memastikan tidak ada karyawan yang mendapatkan shift yang sama
+        # Jika ada shift yang sama
+        #if len(set(week)) < len(week):
+        #    return False
 
         # Aturan 1: Tidak diperkenankan mengambil libur atau cuti di akhir pekan (weekend) hanya boleh di weekday saja
         if off in [7, -1] and (i == 5 or i == 6): # i == 5 adalah hari Sabtu, 1 == 6 adalah hari Minggu
             return False
 
         # Aturan 2: Sebelum mengambil cuti atau libur karyawan akan diberikan shift 1 atau 4, dan setelah cuti/libur diberikan shift 2
-        if off in [7, -1] and i > 0:
+        if off in [6, -1] and i > 0:
             hari_sebelumnya = individual[i - 1][-1] # Hari sebelum libur/cuti
             if hari_sebelumnya not in [1, 4]:
                 return False
 
-        if off in [7, -1] and i < len(individual) -1:
+        if off in [6, -1] and i < len(individual) -1:
             hari_berikutnya = individual[i + 1][0] # Hari setelah libur/cuti
             if hari_berikutnya != 2:
                 return False
 
         # Aturan 4: Pada weekend (Jumat, Sabtu, Minggu), pekerja harus di shift 4 (shift ramai)
-        if i in [4, 5, 6] and shift4 == off: # Indeks 4, 5, 6 menunjukan hari Jum'at, Sabtu dan Minggu
+        if i in [4, 5, 6] and off != 4: # Indeks 4, 5, 6 menunjukan hari Jum'at, Sabtu dan Minggu
             return False # Jika tidak ada pekerja di shift 4 pada hari ini, jadwal tidak valid
 
-        # Aturan 5: Untuk menutup toko harus lebih dari 1 orang (misalnya shift 6)
-        if shift6 != off and shift6 == shift1:
+        # Aturan 5: Untuk menutup toko harus lebih dari 1 orang (misalnya shift 2)
+        if shift2 != off and shift2 == shift1:
             return False 
         
         # Aturan tambahan: Shift 6 hanya boleh pada hari perayaan atau event khusus
         current_date = datetime(TAHUN_SEKARANG, 1, 1) + timedelta(weeks=i)
-        if shift6 != off and not is_special_day(current_date):
+        if shift2 != off and not is_special_day(current_date):
             return False
 
         # Aturan 6: Apabila karyawan sudah mendapatkan shift malam (Shift 2 atau Shift 6) maka tidak diperbolehkan ambil shift pagi di hari berikutnya
-        if shift1 == shift2 or shift1 == shift3 or shift1 == shift4 or shift1 == shift5 or shift1 == shift6 or off == -1:
+        if shift1 == shift2 or shift1 == shift3 or shift1 == shift4 or shift1 == shift5 or shift1 == off or off == -1:
             return True
         
         if individual[i + 1][1] != shift2:
             return False
         
-        if shift6 == shift1 or shift6 == shift3 or shift6 == shift2 or shift6 == shift4 or shift6 == shift5:
+        if shift2 == shift1 or shift2 == shift3 or shift2 == shift4 or shift1 == shift4 or shift1 == shift5:
             return False
         
-        if shift6 or shift2 in individual[i + 1]:
+        if shift1 or shift2 in individual[i + 1]:
             return False
         
-        if shift1 == shift2 or shift3 == shift4 or shift5 == shift6 or shift2 == shift1:
+        if shift1 == shift2 or shift3 == shift4 or shift5 == shift4 or shift2 == shift1:
             return False
     # Aturan 3: Teruntuk karyawan laki-laki yang beragama Islam, tidak disarankan mengambil shift 1, 3 dan 4 pada hari Jum'at
     for i, week in enumerate(individual):
@@ -171,19 +179,18 @@ def backtrack(individual):
             for shift3 in workers:
                 for shift4 in workers:
                     for shift5 in workers:
-                        for shift6 in workers:
-                            for off in workers:
-                                # Periksa jika tiap pekerja berbeda untuk bagian shift di tiap minggunya
-                                if shift1 != shift2 and shift1 != shift3 and shift2 != shift3 and shift4 != shift5 and shift6 != off: 
-                                    new_individual = individual + [[shift1, shift2, shift3, shift4, shift5, shift6, off]]
-                                    # Periksa jika jadwal barunya valid 
-                                    if is_valid(new_individual):
-                                        # Jika jadwal barunya sudah valid maka dilanjutkan dengan minggu setelahnya
-                                        if backtrack(new_individual):
-                                            individual[:] = new_individual
-                                            return True
-                                        else:
-                                            new_individual.pop()
+                        for off in workers:
+                            # Periksa jika tiap pekerja berbeda untuk bagian shift di tiap minggunya
+                            if shift1 != shift2 and shift1 != shift3 and shift2 != shift3 and shift4 != shift5 != off: 
+                                new_individual = individual + [[shift1, shift2, shift3, shift4, shift5, off]]
+                                # Periksa jika jadwal barunya valid 
+                                if is_valid(new_individual):
+                                    # Jika jadwal barunya sudah valid maka dilanjutkan dengan minggu setelahnya
+                                    if backtrack(new_individual):
+                                        individual[:] = new_individual
+                                        return True
+                                    else:
+                                        new_individual.pop()
     
     return False
 
@@ -203,7 +210,7 @@ def init_individual():
         if attempts > 10:
             break
     # Ensure the individual has 7 elements: 6 shifts + 1 off day
-    if len(individual) > 0 and len(individual[-1]) < 7:
+    if len(individual) > 0 and len(individual[-1]) < 6:
         individual[-1].append(-1)  # Assuming -1 represents an off day or invalid shift
 
     return individual
@@ -219,11 +226,11 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         return sum([(count - expected) ** 2 for count in counts.values()]) / len(NAMES)
 
     # Initialize shifts lists
-    shift1, shift2, shift3, shift4, shift5, shift6, off = [], [], [], [], [], [], []
+    shift1, shift2, shift3, shift4, shift5, off = [], [], [], [], [], []
 
     for week in individual:
         # Ensure week has 7 elements
-        while len(week) < 7:
+        while len(week) < 6:
             week.append(-1)  # Append a default value for missing shifts
 
     # Separate day workers by shift type
@@ -232,8 +239,8 @@ def evaluate(individual, year=TAHUN_SEKARANG):
     shift3 = [week[2] for week in individual]
     shift4 = [week[3] for week in individual]
     shift5 = [week[4] for week in individual]
-    shift6 = [week[5] for week in individual]
-    off = [week[6] for week in individual]
+    #shift6 = [week[5] for week in individual]
+    off = [week[5] for week in individual]
 
     expected_days = len(individual) / len(NAMES)
     year_variance = sum([
@@ -242,7 +249,7 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         calculate_variance({i: shift3.count(i) for i in set(shift3)}, expected_days),
         calculate_variance({i: shift4.count(i) for i in set(shift4)}, expected_days),
         calculate_variance({i: shift5.count(i) for i in set(shift5)}, expected_days),
-        calculate_variance({i: shift6.count(i) for i in set(shift6)}, expected_days),
+        #calculate_variance({i: shift6.count(i) for i in set(shift6)}, expected_days),
         calculate_variance({i: off.count(i) for i in set(off)}, expected_days)
     ])
     
@@ -258,7 +265,7 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         month_shift3 = shift3[first_week-1:last_week]
         month_shift4 = shift4[first_week-1:last_week]
         month_shift5 = shift5[first_week-1:last_week]
-        month_shift6 = shift6[first_week-1:last_week]
+        #month_shift6 = shift6[first_week-1:last_week]
         month_off = off[first_week-1:last_week]
 
         weeks_in_month = last_week - first_week + 1
@@ -270,7 +277,7 @@ def evaluate(individual, year=TAHUN_SEKARANG):
             calculate_variance({i: month_shift3.count(i) for i in set(month_shift3)}, expected_days_in_month),
             calculate_variance({i: month_shift4.count(i) for i in set(month_shift4)}, expected_days_in_month),
             calculate_variance({i: month_shift5.count(i) for i in set(month_shift5)}, expected_days_in_month),
-            calculate_variance({i: month_shift6.count(i) for i in set(month_shift6)}, expected_days_in_month),
+            #calculate_variance({i: month_shift6.count(i) for i in set(month_shift6)}, expected_days_in_month),
             calculate_variance({i: month_off.count(i) for i in set(month_off)}, expected_days_in_month)
         ]))
 
