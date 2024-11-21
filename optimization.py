@@ -105,11 +105,6 @@ def is_valid(individual):
         # Unpack the week into shifts and off day
         shift1, shift2, shift3, shift4, shift5, off = week
 
-        # Aturan tambahan: Memastikan tidak ada karyawan yang mendapatkan shift yang sama
-        # Jika ada shift yang sama
-        #if len(set(week)) < len(week):
-        #    return False
-
         # Aturan 1: Tidak diperkenankan mengambil libur atau cuti di akhir pekan (weekend) hanya boleh di weekday saja
         if off in [7, -1] and (i == 5 or i == 6): # i == 5 adalah hari Sabtu, 1 == 6 adalah hari Minggu
             return False
@@ -249,7 +244,6 @@ def evaluate(individual, year=TAHUN_SEKARANG):
         calculate_variance({i: shift3.count(i) for i in set(shift3)}, expected_days),
         calculate_variance({i: shift4.count(i) for i in set(shift4)}, expected_days),
         calculate_variance({i: shift5.count(i) for i in set(shift5)}, expected_days),
-        #calculate_variance({i: shift6.count(i) for i in set(shift6)}, expected_days),
         calculate_variance({i: off.count(i) for i in set(off)}, expected_days)
     ])
     

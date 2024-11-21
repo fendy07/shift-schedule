@@ -46,10 +46,6 @@
                     <input type="text" class="worker-name form-control" placeholder="Masukan Nama Karyawan" aria-label="Nama Karyawan">
                     <button type="button" class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
                 </div>
-                <!--<div class="input-group mb-2">
-                    <input type="text" class="worker-name form-control" placeholder="Masukan Nama Karyawan" aria-label="Nama Karyawan">
-                    <button type="button" class="btn btn-danger remove-name-btn" onclick="removeNameField(this)">X</button>
-                </div> -->
                 <!-- Akhir nama default -->
             </div>
             <button type="button" class="btn btn-info mb-2" onclick="addNameField()">Tambah Nama Karyawan</button>
@@ -93,7 +89,6 @@
             <span class="badge shift-3">Shift 3 (12:00 - 20:00)</span>
             <span class="badge shift-4">Shift 4 (10:00 - 20:00)</span>
             <span class="badge shift-5">Shift 5 (10:00 - 19:00)</span>
-            <!--<span class="badge shift-6">Shift 6 (10:00 - 22:00)</span>-->
             <span class="badge badge-off off">Libur (Off Day)</span>
         </div>
         <div id='calendar'></div>
@@ -316,9 +311,7 @@
                         fitness += 4;
                     } else if (individual[i] === 4) { // shift 5
                         fitness += 2;
-                    } else if (individual[i] === 5) { // shift 6
-                        fitness += 0;
-                    } else if (individual[i] === 6) { // Libur
+                    } else if (individual[i] === 5) { // Libur
                         fitness -= 10;
                     }
                 }
