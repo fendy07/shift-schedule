@@ -234,7 +234,6 @@ def evaluate(individual, year=TAHUN_SEKARANG):
     shift3 = [week[2] for week in individual]
     shift4 = [week[3] for week in individual]
     shift5 = [week[4] for week in individual]
-    #shift6 = [week[5] for week in individual]
     off = [week[5] for week in individual]
 
     expected_days = len(individual) / len(NAMES)

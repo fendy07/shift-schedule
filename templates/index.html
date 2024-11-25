@@ -117,15 +117,20 @@
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
+                timezone: 'UTC',
                 initialView: 'dayGridMonth',
                 headerToolbar: {
                     center: 'prev,next today',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay,list'
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,list,multiMonthYear'
                 },
                 editable: true,
+                selectable: true,
                 dayMaxEvents: true,
                 eventDrop: function(info) {
                     handleEventDrop(info);
+                },
+                selectOverlap: function(event) {
+                    return event.display === 'background';
                 }
             });
 
@@ -147,14 +152,14 @@
                 }),
                 success: function(response) {
                     if (response.success) {
-                        showNotification('success', 'Shift date updated successfully!');
+                        showNotification('success', 'Shift Date Updated Successfully!');
                     } else {
-                        showNotification('error', 'Failed to update to shift date.');
+                        showNotification('error', 'Failed to Update to Shift Date.');
                         info.revert();
                     }
                 },
                 error: function() {
-                    showNotification('error', 'An error occurred while updating the shift.');
+                    showNotification('error', 'An Error Occurred While Updating The Shift.');
                     info.revert(); 
                 }
             });
