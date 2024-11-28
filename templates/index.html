@@ -117,7 +117,6 @@
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
-                timezone: 'UTC',
                 initialView: 'dayGridMonth',
                 headerToolbar: {
                     center: 'prev,next today',
@@ -137,7 +136,7 @@
             calendar.render();
             listFiles();
         });
-
+        // Drag and drop untuk event jadwal yang bisa disesuaikan
         function handleEventDrop(info) {
             // Get the new date of the event
             var newDate = info.event.start;
@@ -208,7 +207,7 @@
                 timer: 2000 // Notifikasi akan hilang setelah 5 detik
             });
         }
-
+        // Load jadwal apabila sudah disimpan 
         function loadSchedule() {
             var selectedFile = $('#file-list').val();
             if (!selectedFile) {
@@ -250,7 +249,7 @@
                 }
             });
         }
-
+        // hapus jadwal apabila file jadwal sudah disimpan atau belum sesuai
         function deleteSchedule() {
             var selectedFile = $('#file-list').val();
             if (!selectedFile) {
@@ -548,12 +547,12 @@
                 link.click();
             });
         }
-
+        // generate metriks untuk metriks tahunan dan bulanan ketika pekerja mendapatkan jadwal shift yang didapatkan
         function generateMetrics(data) {
             const counts = {};
             
             data.forEach(function(week) {
-                counts[week[0]] = counts[week[0]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, shift6: 0, offDay: 0};
+                counts[week[0]] = counts[week[0]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, offDay: 0};
                 counts[week[0]].shift1 += 1;
                 
                 counts[week[1]] = counts[week[1]] || { shift1: 0, shift2: 0, shift3: 0, shift4: 0, shift5: 0, offDay: 0};
