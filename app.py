@@ -46,7 +46,7 @@ def save_schedule():
         if file_hash and file_hash == current_schedule_hash:
             return jsonify(success=False, message="Jadwal sudah ada!")
 
-    # Jika tidak ada yang cocok, simpan file
+    # Jika ada yang cocok, simpan file
     filename = "schedule_" + datetime.now().strftime('%Y_%m_%d_%H_%M_%S') + ".json"
     filepath = os.path.join(SAVE_PATH, filename)
 
@@ -94,8 +94,7 @@ def delete_schedule():
             os.remove(filepath)
             return jsonify({'success': True, 'message': 'Program Berhasil Dihapus!'})
         else:
-            return jsonify({'success': False, 'message': 'File Tidak Ditemukan!'}), 404
-        
+            return jsonify({'success': False, 'message': 'File Tidak Ditemukan!'}), 404        
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
@@ -107,7 +106,6 @@ def update_event_date():
         new_date = data.get('newDate')
 
         return jsonify(success=True)
-
     except Exception as e:
         return jsonify(success=False, message=str(e)), 500
     
@@ -117,7 +115,7 @@ def optimize():
     data = request.json
     names = data['names']
     muslim = data.get('muslim_men')
-
+    # Optimasi schedule yang akan dibuat
     optimize_schedule = optimized_schedule(names, muslim, generations=200)
     return jsonify(optimize_schedule)
 
